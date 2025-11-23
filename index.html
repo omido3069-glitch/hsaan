@@ -1,174 +1,548 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>واجهة الدخول</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Tajawal', Arial, sans-serif;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>نظام تسجيل السيارات — جامعة حلوان الأهلية</title>
 
-    body {
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg, #0f172a, #1e293b, #0f766e);
-      background-size: 300% 300%;
-      animation: gradientMove 10s ease infinite;
-      color: #fff;
-    }
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-    @keyframes gradientMove {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
+<style>
+:root{
+  --blue-dark: #0d47a1;
+  --blue-soft: #e7f3ff;
+  --card-blue: #d8eefe;
+  --accent: #1976d2;
+  --black-bold: #0b0b0b;
+  --danger: #d32f2f;
+  --green: #2e7d32;
+}
 
-    .card {
-      text-align: center;
-      padding: 80px 60px;
-      background: rgba(255, 255, 255, 0.07);
-      border-radius: 30px;
-      backdrop-filter: blur(15px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
-      animation: fadeIn 1.2s ease-in-out;
-    }
+html,body{height:100%;margin:0}
+body{
+  font-family:'Cairo',sans-serif;
+  background: linear-gradient(180deg,#f8fbff 0%, #e9f7ff 100%);
+  color: var(--black-bold);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:14px;
+}
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(40px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+/* --- الأنماط العامة --- */
+.title { color: var(--blue-dark); font-size:24px; font-weight:900; text-align:center; margin-top:10px; margin-bottom:4px; letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.05);}
+.status-wrap{ width:100%; max-width:520px; overflow:hidden; border-radius:10px; margin-bottom:12px; background:linear-gradient(90deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05)); border:1px solid rgba(13,71,161,0.06);}
+.status { display:block; white-space:nowrap; padding:8px 12px; font-weight:700; color:var(--black-bold); background: linear-gradient(90deg, rgba(235,246,255,0.6), rgba(255,255,255,0)); transform:translateX(100%); animation: slideRTL 8s linear infinite; font-size:14px; }
+@keyframes slideRTL { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); }}
 
-    .card img {
-      width: 60%;
-      max-width: 320px;
-      height: auto;
-      border-radius: 50%;
-      border: 6px solid #22c55e;
-      box-shadow: 0 0 40px rgba(34, 197, 94, 0.9);
-      margin-bottom: 40px;
-      transition: transform 0.4s;
-    }
+.card { width:100%; max-width:520px; background:#fff; border-radius:14px; padding:14px; box-shadow:0 8px 30px rgba(13,71,161,0.06); margin-bottom:12px; box-sizing:border-box; }
+label{ display:block; text-align:right; margin:8px 0 6px; font-weight:800; color:var(--black-bold); font-size:15px; }
+.input { width:100%; padding:12px 14px; border-radius:12px; border:1px solid #d6eaf8; background: var(--card-blue); text-align:center; font-size:16px; font-weight:700; color:var(--black-bold); outline:none; box-sizing:border-box; }
+.input:focus{ box-shadow:0 6px 18px rgba(33,150,243,0.12); border-color:var(--accent); background:#eef8ff; }
+textarea.input { min-height:60px; resize:vertical; padding-top:10px; }
+.btn-primary { margin-top:12px; width:100%; padding:12px; border-radius:12px; border:none; background: linear-gradient(90deg,#1565c0,#42a5f5); color:white; font-weight:800; font-size:16px; cursor:pointer; transition:opacity 0.3s ease; }
+.btn-primary:active{transform:scale(.995)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.btn-secondary { display: block; width: 100%; text-align: center; padding: 8px; border-radius: 12px; border: 1px solid var(--accent); background: #fff; color: var(--accent); font-weight: 800; font-size: 15px; cursor: pointer; transition: background 0.3s ease; text-decoration: none; box-sizing: border-box; }
+.btn-secondary:hover { background: var(--blue-soft); }
 
-    .card img:hover {
-      transform: scale(1.08);
-    }
+.suggestions { margin-top:8px; display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-start; }
 
-    .title {
-      font-size: 42px;
-      font-weight: bold;
-      margin-bottom: 40px;
-      line-height: 1.8;
-      color: #f0fdf4;
-      text-shadow: 0 0 20px rgba(34, 197, 94, 0.9);
-    }
+.suggestion-card {
+    text-align: right;
+    padding: 8px 12px;
+    width: 100%;
+    display: block;
+    background: linear-gradient(180deg,#e8f6ff, #d7efff);
+    border-radius: 12px;
+    cursor: pointer;
+    box-sizing: border-box;
+    border: 1px solid rgba(13,71,161,0.06);
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+.suggestion-card:hover{ transform:translateY(-4px); box-shadow:0 8px 20px rgba(13,71,161,0.08) }
 
-    .btn {
-      display: inline-block;
-      padding: 20px 50px;
-      background: #22c55e;
-      color: #fff;
-      font-size: 28px;
-      font-weight: bold;
-      border-radius: 20px;
-      text-decoration: none;
-      box-shadow: 0 6px 25px rgba(34, 197, 94, 0.6);
-      transition: all 0.3s;
-      cursor: pointer;
-    }
+.suggestion-card .car-num { font-size: 16px; font-weight: 900; color: var(--blue-dark); }
+.suggestion-card .details { font-size: 12px; font-weight: 600; color: #555; }
 
-    .btn:hover {
-      background: #16a34a;
-      transform: translateY(-5px);
-      box-shadow: 0 8px 35px rgba(34, 197, 94, 0.8);
-    }
+.filter-bar { display: flex; gap: 8px; margin-bottom: 12px; width: 100%; max-width: 520px; }
+.filter-bar .input { padding: 8px 10px; font-size: 14px; font-weight: 600; height: 40px; }
+.filter-bar select.input { flex-shrink: 0; width: 140px; text-align: right; padding-right: 14px; }
+.filter-bar .input[type="text"] { flex-grow: 1; }
 
-    .social {
-      margin-top: 40px;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-    }
+.table-wrap{ width:100%; max-width:520px; background:#fff; border-radius:12px; overflow:auto; box-shadow:0 8px 20px rgba(13,71,161,0.04); margin-top:10px; }
+table { width:100%; border-collapse:collapse; }
 
-    .social a {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      color: #fff;
-      text-decoration: none;
-      transition: all 0.3s;
-    }
+th, td{ padding:4px; text-align:center; border-bottom:1px solid #e0eaf3; font-weight:700; color:var(--black-bold); font-size:9px; white-space: normal; }
+th{ background:var(--accent); color:#fff; font-size:9px; font-weight:800; border-bottom: 2px solid var(--blue-dark); }
+.time-in{ color:var(--green); font-weight: 800; }
+.time-out{ color:var(--danger); font-weight: 800; }
+.exit-btn{ background:var(--danger); color:#fff; border:none; padding:4px 6px; border-radius:6px; font-weight:800; font-size:10px; cursor:pointer; transition:opacity 0.3s ease; }
 
-    .social a:hover {
-      transform: scale(1.2) rotate(10deg);
-    }
+.day-separator td { background: var(--blue-soft); color: var(--blue-dark); font-weight: 800; text-align: center; padding: 6px; border-bottom: 2px solid var(--accent); border-top: 2px solid var(--accent); font-size: 12px; }
 
-    .facebook { background: #1877f2; }
-    .facebook:hover { background: #145dbf; }
+.admin-controls, .admin-only, .exit-btn, th.action-col, td.action-cell { display: none; }
+body.admin-logged-in .admin-controls,
+body.admin-logged-in .admin-only,
+body.admin-logged-in .exit-btn,
+body.admin-logged-in th.action-col,
+body.admin-logged-in td.action-cell { display: revert; }
 
-    .youtube { background: #ff0000; }
-    .youtube:hover { background: #cc0000; }
+#adminLoginIcon { position: fixed; top: 15px; left: 15px; width: 44px; height: 44px; background: var(--blue-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1001; }
+#adminLogoutBtn { display: none; }
+body.admin-logged-in #adminLoginIcon { display: none; }
+body.admin-logged-in #adminLogoutBtn { display: block; }
 
-    .tiktok { background: #000000; }
-    .tiktok:hover { background: #111111; }
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 2000; }
+.modal-content { background: white; padding: 20px; border-radius: 14px; width: 90%; max-width: 340px; text-align: center; }
+.modal-overlay.show { display: flex; }
 
-    @media (max-width: 600px) {
-      .card {
-        padding: 40px 20px;
-      }
-      .title {
-        font-size: 28px;
-      }
-      .btn {
-        font-size: 20px;
-        padding: 15px 30px;
-      }
-    }
-  </style>
+.notification { position: fixed; top: 20px; right: 20px; padding: 12px 16px; border-radius: 8px; font-weight: 700; font-size: 14px; z-index: 1000; transition: transform 0.3s ease, opacity 0.5s ease; }
+.notification.success { background: #4caf50; color: white; }
+.notification.error { background: #f44336; color: white; }
+.notification.info { background: #2196F3; color: white; }
+@keyframes slideIn { from { transform: translateX(110%); } to { transform: translateX(0); } }
+.notification { animation: slideIn 0.3s ease-out forwards; }
+.notification.fade-out { transform: translateX(110%); opacity: 0; }
 
-  <!-- ✅ مكتبة أيقونات Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</style>
 </head>
 <body>
-  <!-- ✅ الصوت (يشتغل بالضغط على الزر) -->
-  <audio id="bismillahAudio">
-    <source src="bismillah.mp3" type="audio/mpeg">
-  </audio>
 
-  <div class="card">
-    <img src="25.jpg" alt="القارئ">
-    <div class="title">القرآن الكريم بصوت القارئ<br>حسان محمد حسان</div>
-    
-    <!-- ✅ الزر -->
-    <button class="btn" id="startBtn">ابدأ الاستماع</button>
+<div id="adminLoginIcon" title="دخول المسؤول"><i class="bi bi-person-fill-lock"></i></div>
+<button id="adminLogoutBtn" class="btn-secondary admin-only" style="position: fixed; top: 15px; left: 15px; width: auto; padding: 8px 16px; z-index: 1001;">تسجيل الخروج</button>
 
-    <!-- ✅ روابط التواصل -->
-    <div class="social">
-      <a href="https://www.facebook.com/share/1CYd6MeDQv/" target="_blank" class="facebook"><i class="fab fa-facebook-f"></i></a>
-      <a href="https://youtube.com/@qaree_hassaan_mohamed" target="_blank" class="youtube"><i class="fab fa-youtube"></i></a>
-      <a href="https://www.tiktok.com/@hassaan777mohamed?_t=ZS-8zN4PXblMyf&_r=1" target="_blank" class="tiktok"><i class="fab fa-tiktok"></i></a>
+<div id="adminLoginModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="color: var(--blue-dark); margin-top: 0;">دخول المسؤول</h3>
+        <label for="adminUser">اسم المستخدم</label>
+        <input id="adminUser" class="input" value="admin">
+        <label for="adminPass">كلمة المرور</label>
+        <input id="adminPass" type="password" class="input">
+        <button id="submitAdminLogin" class="btn-primary">دخول</button>
+        <button id="cancelAdminLogin" class="btn-secondary" style="margin-top: 8px;">إلغاء</button>
     </div>
-  </div>
+</div>
 
-  <script>
-    const audio = document.getElementById('bismillahAudio');
-    const startBtn = document.getElementById('startBtn');
 
-    startBtn.addEventListener('click', () => {
-      audio.play().catch(err => console.log("Autoplay error:", err));
-      // بعد ثانيتين تحويل للصفحة
-      setTimeout(() => {
-        window.location.href = "lo.html";
-      }, 2000);
+<div style="width:100%;max-width:520px;">
+<div class="title">🚗 نظام تسجيل السيارات — جامعة حلوان الأهلية</div>
+<div class="footer">تم التصميم بواسطة / محمد رجب</div>
+
+<div class="status-wrap" aria-hidden="true">
+  <span id="status" class="status">✅ جاهز لتسجيل البيانات</span>
+</div>
+
+<div class="admin-controls">
+    <div class="card">
+        <button id="uploadBtn" class="btn-secondary">⬆️ رفع السجلات المحلية أونلاين</button>
+    </div>
+</div>
+
+<div class="admin-controls">
+    <div class="card">
+      <label for="carNumberInput">رقم السيارة</label>
+      <input id="carNumberInput" class="input" placeholder="اكتب رقم السيارة" autocomplete="off" />
+      <div id="suggestions" class="suggestions" aria-live="polite"></div>
+      <label for="nameInput">الاسم</label>
+      <input id="nameInput" class="input" placeholder="الاسم" />
+      <label for="collegeInput">جهة الدخول</label>
+      <input id="collegeInput" class="input" placeholder="جهة الدخول" />
+      <label for="notesInput">ملاحظات</label>
+      <textarea id="notesInput" class="input" placeholder="ملاحظات (اختياري)"></textarea>
+      <button id="loginBtn" class="btn-primary">➕ تسجيل دخول محلي</button>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <select id="filterDate" class="input" title="فلتر حسب اليوم">
+        <option value="">كل الأيام</option>
+    </select>
+    <input type="text" id="searchQuery" class="input" placeholder="بحث بالاسم أو رقم السيارة" title="بحث بالاسم أو رقم السيارة">
+</div>
+
+<div class="table-wrap" style="margin-top:12px;">
+  <table id="recordsTable" aria-live="polite">
+    <thead>
+      <tr>
+        <th>الاسم</th>
+        <th>رقم</th>
+        <th>جهة الدخول</th>
+        <th>وقت الدخول</th>
+        <th>وقت الخروج</th>
+        <th>ملاحظات</th>
+        <th class="action-col">إجراء</th>
+      </tr>
+    </thead>
+    <tbody id="recordsBody"></tbody>
+  </table>
+</div>
+
+</div>
+
+<script type="module">
+// استيراد الدوال اللازمة من Firebase مع إضافة onValue
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// ====== Firebase Config ======
+const firebaseConfig = {
+  apiKey: "AIzaSyDBSiTb1m0osdrX7YOv4ADr8x-7TghSqmY",
+  authDomain: "day3069-e27df.firebaseapp.com",
+  databaseURL: "https://day3069-e27df-default-rtdb.firebaseio.com",
+  projectId: "day3069-e27df",
+  storageBucket: "day3069-e27df.firebasestorage.app",
+  messagingSenderId: "110258698429",
+  appId: "1:110258698429:web:fcc4114a83829756329fd4",
+  measurementId: "G-Q3LN0HTXXZ"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const dbRef = ref(db);
+
+// ====== عناصر DOM ======
+const carNumberInput = document.getElementById('carNumberInput');
+const nameInput = document.getElementById('nameInput');
+const collegeInput = document.getElementById('collegeInput');
+const notesInput = document.getElementById('notesInput');
+const loginBtn = document.getElementById('loginBtn');
+const suggestionsWrap = document.getElementById('suggestions');
+const recordsBody = document.getElementById('recordsBody');
+const filterDateInput = document.getElementById('filterDate');
+const searchQueryInput = document.getElementById('searchQuery');
+const uploadBtn = document.getElementById('uploadBtn');
+const adminLoginIcon = document.getElementById('adminLoginIcon');
+const adminLoginModal = document.getElementById('adminLoginModal');
+const adminPassInput = document.getElementById('adminPass');
+const submitAdminLoginBtn = document.getElementById('submitAdminLogin');
+const cancelAdminLoginBtn = document.getElementById('cancelAdminLogin');
+const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+const statusSpan = document.getElementById('status');
+
+// ====== متغيرات الحالة ======
+let cloudRecords = [];
+let localRecords = [];
+let carsCache = [];
+let isInitialLoad = true; // متغير لتتبع أول تحميل للبيانات
+
+// ====== دوال مساعدة ======
+function showNotification(message, type = 'success') {
+    const n = document.createElement('div');
+    n.className = `notification ${type}`;
+    n.textContent = message;
+    document.body.appendChild(n);
+    setTimeout(() => {
+        n.classList.add('fade-out');
+        n.addEventListener('transitionend', () => n.remove());
+    }, 3000);
+}
+
+function formatTime(ts) { const d = new Date(ts); const h = d.getHours(); const m = d.getMinutes(); const ampm = h >= 12 ? 'م' : 'ص'; return `${h % 12 || 12}:${m < 10 ? '0' + m : m} ${ampm}`; }
+function formatDate(ts) { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
+// ====== التخزين المحلي ======
+function loadLocalRecords() {
+    const stored = localStorage.getItem('localCarRecords');
+    localRecords = stored ? JSON.parse(stored) : [];
+    updateUploadButtonState();
+}
+
+function saveLocalRecords() {
+    localStorage.setItem('localCarRecords', JSON.stringify(localRecords));
+    updateUploadButtonState();
+}
+
+function updateUploadButtonState() {
+    const count = localRecords.length;
+    uploadBtn.textContent = count > 0 ? `⬆️ رفع ${count} سجل محلي أونلاين` : '✅ لا توجد سجلات محلية للرفع';
+    uploadBtn.disabled = count === 0;
+}
+
+// ====== عرض البيانات المدمجة ======
+function renderCombinedRecords() {
+    const allRecords = [...cloudRecords, ...localRecords];
+    const selDate = filterDateInput.value;
+    const sq = searchQueryInput.value.trim().toLowerCase();
+    
+    const filteredRecords = allRecords.filter(r => {
+        const dateMatch = !selDate || formatDate(r.timestamp) === selDate;
+        const searchMatch = !sq || (r.name && r.name.toLowerCase().includes(sq)) || (r.number && r.number.toLowerCase().includes(sq));
+        return dateMatch && searchMatch;
     });
-  </script>
+
+    // فرز تنازلي (الأحدث أولاً)
+    filteredRecords.sort((a, b) => b.timestamp - a.timestamp);
+    
+    recordsBody.innerHTML = '';
+
+    if (filteredRecords.length === 0) {
+        recordsBody.innerHTML = '<tr><td colspan="7" style="padding:16px; color:#999;">لا توجد سجلات لعرضها</td></tr>';
+        return;
+    }
+
+    let lastDate = null;
+    filteredRecords.forEach(r => {
+        const currentDate = formatDate(r.timestamp);
+        if (currentDate !== lastDate) {
+            const dateRow = recordsBody.insertRow();
+            dateRow.className = 'day-separator';
+            const cell = dateRow.insertCell();
+            cell.colSpan = 7;
+            cell.textContent = currentDate;
+            lastDate = currentDate;
+        }
+
+        const row = recordsBody.insertRow();
+        row.dataset.id = r.id;
+        // إضافة علامة للسجلات المحلية
+        if (localRecords.some(local => local.id === r.id)) {
+            row.style.backgroundColor = 'var(--blue-soft)';
+        }
+
+        row.insertCell().textContent = r.name;
+        row.insertCell().textContent = r.number;
+        row.insertCell().textContent = r.college;
+        
+        const inTimeCell = row.insertCell();
+        inTimeCell.className = 'time-in';
+        inTimeCell.textContent = r.inTime;
+        
+        const outTimeCell = row.insertCell();
+        outTimeCell.className = r.outTime ? 'time-out' : '';
+        outTimeCell.textContent = r.outTime || '-';
+        
+        row.insertCell().textContent = r.notes || '-';
+        
+        const actionCell = row.insertCell();
+        actionCell.className = 'action-cell';
+        if (!r.outTime) {
+            const exitBtn = document.createElement('button');
+            exitBtn.className = 'exit-btn';
+            exitBtn.dataset.id = r.id;
+            exitBtn.textContent = 'خروج';
+            actionCell.appendChild(exitBtn);
+        }
+    });
+}
+
+function populateDateFilter() {
+    const allRecords = [...cloudRecords, ...localRecords];
+    const dates = [...new Set(allRecords.map(r => formatDate(r.timestamp)))];
+    dates.sort((a, b) => new Date(b) - new Date(a));
+    const currentFilter = filterDateInput.value;
+    filterDateInput.innerHTML = '<option value="">كل الأيام</option>';
+    dates.forEach(date => {
+        const option = document.createElement('option');
+        option.value = date;
+        option.textContent = date;
+        filterDateInput.appendChild(option);
+    });
+    // الحفاظ على الفلتر المختار
+    if (dates.includes(currentFilter)) {
+        filterDateInput.value = currentFilter;
+    }
+}
+
+// ====== عرض الاقتراحات ======
+function renderSuggestions(query) {
+    suggestionsWrap.innerHTML = '';
+    if (query.length < 2 || carsCache.length === 0) return;
+    
+    const matches = carsCache.filter(c => c.carNumber && c.carNumber.includes(query));
+    matches.slice(0, 5).forEach(car => {
+        const card = document.createElement('div');
+        card.className = 'suggestion-card';
+        const carNumDiv = document.createElement('div');
+        carNumDiv.className = 'car-num';
+        carNumDiv.textContent = car.carNumber;
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'details';
+        detailsDiv.textContent = `${car.ownerName} - ${car.entrance}`;
+        card.appendChild(carNumDiv);
+        card.appendChild(detailsDiv);
+        card.onclick = () => {
+            carNumberInput.value = car.carNumber;
+            nameInput.value = car.ownerName;
+            collegeInput.value = car.entrance;
+            notesInput.value = car.notes || '';
+            suggestionsWrap.innerHTML = '';
+            nameInput.focus();
+        };
+        suggestionsWrap.appendChild(card);
+    });
+}
+
+// ====== تسجيل الدخول والخروج (محلي فقط) ======
+loginBtn.addEventListener('click', () => {
+    const number = carNumberInput.value.trim(), name = nameInput.value.trim(), college = collegeInput.value.trim(), notes = notesInput.value.trim();
+    if (!number || !name) { showNotification('من فضلك أدخل رقم السيارة والاسم', 'error'); return; }
+    
+    const allRecords = [...cloudRecords, ...localRecords];
+    if (allRecords.some(r => r.number === number && !r.outTime)) {
+        showNotification(`⚠️ السيارة ${number} مسجلة دخول بالفعل!`, 'warning');
+        return;
+    }
+
+    const ts = Date.now();
+    const newRecord = { id: 'rec_' + ts, name, number, college, notes, inTime: formatTime(ts), outTime: '', timestamp: ts };
+    
+    localRecords.push(newRecord);
+    saveLocalRecords();
+    
+    populateDateFilter();
+    renderCombinedRecords();
+    
+    carNumberInput.value = ''; nameInput.value = ''; collegeInput.value = ''; notesInput.value = ''; suggestionsWrap.innerHTML = '';
+    showNotification('✅ تم تسجيل الدخول محلياً بنجاح!', 'success');
+});
+
+recordsBody.addEventListener('click', e => {
+    const exitButton = e.target.closest('.exit-btn');
+    if (!exitButton) return;
+
+    const recId = exitButton.dataset.id;
+    let record = localRecords.find(r => r.id === recId);
+
+    if (record) {
+        record.outTime = formatTime(Date.now());
+        record.outTimestamp = Date.now();
+    } else {
+        record = cloudRecords.find(r => r.id === recId);
+        if (record) {
+            // إنشاء نسخة محدثة بدلاً من تعديل السجل السحابي مباشرة
+            const updatedRecord = { ...record, outTime: formatTime(Date.now()), outTimestamp: Date.now() };
+            // حذف السجل القديم من السجلات المحلية إذا كان موجوداً (لتجنب التكرار)
+            localRecords = localRecords.filter(r => r.id !== recId);
+            // إضافة السجل المحدث إلى السجلات المحلية
+            localRecords.push(updatedRecord);
+        }
+    }
+    
+    saveLocalRecords();
+    renderCombinedRecords();
+    showNotification('✅ تم تسجيل الخروج محلياً!', 'success');
+});
+
+// ====== رفع السجلات أونلاين ======
+uploadBtn.addEventListener('click', async () => {
+    if (localRecords.length === 0) return;
+
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = `⏳ جارٍ رفع ${localRecords.length} سجل...`;
+
+    const updates = {};
+    localRecords.forEach(record => {
+        // التأكد من وجود timestamp
+        const ts = record.timestamp || Date.now();
+        const datePath = formatDate(ts).replace(/-/g, '');
+        updates[`records/${datePath}/${record.id}`] = record;
+    });
+
+    try {
+        await update(dbRef, updates);
+        showNotification(`✅ تم رفع ${localRecords.length} سجل بنجاح!`, 'success');
+        
+        // مسح السجلات المحلية بعد رفعها بنجاح
+        localRecords = [];
+        saveLocalRecords();
+        
+        // لا حاجة لإضافة السجلات المحلية إلى السجلات السحابية يدوياً
+        // لأن onValue سيقوم بتحديثها تلقائياً
+        // renderCombinedRecords(); // onValue سيتولى إعادة العرض
+    } catch (error) {
+        showNotification('❌ فشل رفع السجلات. حاول مرة أخرى.', 'error');
+        console.error("Upload failed:", error);
+    } finally {
+        updateUploadButtonState();
+    }
+});
+
+// ====== جلب البيانات من السحابة (بشكل لحظي) ======
+function listenToCloudRecords() {
+    const recordsRef = ref(db, 'records');
+    onValue(recordsRef, (snapshot) => {
+        cloudRecords = []; // مسح السجلات القديمة
+        if (snapshot.exists()) {
+            const allDays = snapshot.val();
+            Object.values(allDays).forEach(dayRecords => {
+                cloudRecords.push(...Object.values(dayRecords));
+            });
+            statusSpan.textContent = `🔄 آخر تحديث: ${formatTime(Date.now())} | ${cloudRecords.length} سجل أونلاين`;
+        } else {
+            statusSpan.textContent = "ℹ️ لا توجد سجلات سحابية حتى الآن.";
+        }
+
+        if (isInitialLoad) {
+            showNotification('☁️ تم الاتصال بقاعدة البيانات بنجاح', 'info');
+            isInitialLoad = false;
+        } else {
+            showNotification('🔄 تم تحديث البيانات تلقائياً!', 'info');
+        }
+        
+        populateDateFilter();
+        renderCombinedRecords();
+    }, (error) => {
+        showNotification('❌ فشل الاتصال بقاعدة البيانات', 'error');
+        console.error("Real-time listener failed:", error);
+        statusSpan.textContent = "❌ فشل الاتصال بقاعدة البيانات";
+    });
+}
+
+async function fetchCarsData() {
+    try {
+        const carsSnapshot = await get(ref(db, 'cars'));
+        if (carsSnapshot.exists()) {
+            carsCache = Object.values(carsSnapshot.val());
+        }
+    } catch (error) {
+        console.error("Cars data fetch failed:", error);
+        showNotification('❌ فشل تحميل بيانات السيارات', 'error');
+    }
+}
+
+// ====== منطق الأدمن ======
+function setAdminMode(loggedIn) {
+    document.body.classList.toggle('admin-logged-in', loggedIn);
+    sessionStorage.setItem('isAdmin', loggedIn ? 'true' : 'false');
+}
+
+adminLoginIcon.addEventListener('click', () => { adminLoginModal.classList.add('show'); adminPassInput.focus(); });
+cancelAdminLoginBtn.addEventListener('click', () => { adminLoginModal.classList.remove('show'); });
+adminLogoutBtn.addEventListener('click', () => { setAdminMode(false); showNotification('تم تسجيل الخروج', 'info'); });
+
+submitAdminLoginBtn.addEventListener('click', () => {
+    const user = document.getElementById('adminUser').value;
+    const pass = adminPassInput.value;
+    if (user === 'admin' && pass === '123456') {
+        setAdminMode(true);
+        adminLoginModal.classList.remove('show');
+        showNotification('✅ تم تسجيل الدخول كمسؤول', 'success');
+    } else {
+        showNotification('❌ بيانات الدخول غير صحيحة', 'error');
+    }
+});
+
+// ====== مستمعات الأحداث ======
+filterDateInput.addEventListener('change', renderCombinedRecords);
+searchQueryInput.addEventListener('input', renderCombinedRecords);
+carNumberInput.addEventListener('input', (e) => renderSuggestions(e.target.value.trim()));
+
+// ====== بدء التشغيل ======
+async function init() {
+    if (sessionStorage.getItem('isAdmin') === 'true') {
+        setAdminMode(true);
+    }
+    loadLocalRecords();
+    await fetchCarsData();
+    // بدء الاستماع للتغيرات اللحظية بدلاً من الجلب مرة واحدة
+    listenToCloudRecords();
+    // لا حاجة لاستدعاء renderCombinedRecords و populateDateFilter هنا
+    // لأن listenToCloudRecords ستقوم بذلك عند أول اتصال
+}
+
+init();
+</script>
 </body>
 </html>
