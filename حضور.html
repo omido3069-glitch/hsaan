@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الحضور المطور - جامعة حلوان الأهلية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #f59e0b; 
+            --main-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --gold: #fbbf24;
+        }
+
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; transition: 0.3s; }
+
+        body { 
+            background: var(--main-gradient); 
+            background-attachment: fixed; min-height: 100vh;
+            margin: 0; padding: 10px; color: #f1f5f9; position: relative;
+        }
+
+        /* الشعارات - تحسين للهاتف */
+        .logo-left, .logo-right { position: absolute; top: 10px; z-index: 1000; }
+        .logo-left { left: 10px; } .logo-right { right: 10px; }
+        .logo-left img, .logo-right img {
+            width: 70px; height: 70px; border-radius: 50%;
+            border: 2px solid var(--gold); background: white;
+        }
+
+        .container { max-width: 1100px; margin: auto; padding-top: 80px; padding-bottom: 120px; }
+
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { font-size: 1.8rem; margin: 5px 0; font-weight: 800; color: var(--gold); }
+        .header p { font-size: 1rem; opacity: 0.9; }
+
+        .attendance-card {
+            background: #ffffff; border-radius: 20px; padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin-bottom: 20px; color: #1e293b;
+            text-align: center;
+        }
+
+        .live-clock {
+            font-size: 2.2rem; font-weight: 800; color: var(--primary);
+            margin-bottom: 15px; border-bottom: 3px solid var(--accent);
+            display: inline-block; padding: 0 20px;
+        }
+
+        .select-box {
+            width: 100%; padding: 12px; border-radius: 12px;
+            border: 2px solid #e2e8f0; font-size: 1rem; font-weight: 700;
+            margin-bottom: 20px; outline: none; background: #f8fafc;
+        }
+
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-action {
+            padding: 15px; border: none; border-radius: 12px;
+            font-weight: 800; font-size: 1.1rem; cursor: pointer; color: white;
+        }
+        .in { background: #10b981; } .out { background: #ef4444; }
+
+        .controls-row {
+            display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px;
+        }
+        .search-box, .date-filter {
+            background: white; padding: 12px; border-radius: 15px;
+            display: flex; flex-direction: column; gap: 8px; border: 2px solid var(--accent); color: var(--primary);
+        }
+        .search-box input, .date-filter input {
+            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-weight: bold;
+        }
+
+        /* جعل الجدول قابلاً للتمرير على الهاتف */
+        .log-section { 
+            background: white; border-radius: 20px; padding: 10px; 
+            color: #1e293b; overflow-x: auto; 
+        }
+        .log-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        .log-table th { background: var(--primary); color: white; padding: 12px; font-size: 1rem; }
+        .log-table td { 
+            padding: 10px; text-align: center; border-bottom: 1px solid #f1f5f9; 
+            font-weight: 700; font-size: 1rem; color: #000;
+        }
+
+        .date-separator {
+            background: #f8fafc !important; font-weight: 800 !important;
+            color: var(--primary); text-align: center !important; 
+            padding: 8px !important; font-size: 1rem;
+            border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent);
+        }
+
+        /* تحسينات الشاشات الكبيرة */
+        @media (min-width: 768px) {
+            body { padding: 20px; }
+            .logo-left img, .logo-right img { width: 100px; height: 100px; }
+            .container { padding-top: 20px; }
+            .header h1 { font-size: 2.5rem; }
+            .controls-row { grid-template-columns: 1.5fr 1fr; }
+            .search-box, .date-filter { flex-direction: row; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="logo-left"><img src="1.png"></div>
+<div class="logo-right"><img src="123.png"></div>
+
+<div class="container">
+    <div class="header">
+        <h1>جامعة حلوان الأهلية</h1>
+        <p>نظام إدارة الحضور والإنصراف الذكي</p>
+    </div>
+
+    <div class="attendance-card">
+        <div class="live-clock" id="clock">00:00</div>
+        <select id="workerSelect" class="select-box">
+            <option value="">-- تحميل قائمة العمال... --</option>
+        </select>
+        <div class="btn-group">
+            <button class="btn-action in" onclick="markAttendance('check_in')">حضور 🟢</button>
+            <button class="btn-action out" onclick="markAttendance('check_out')">انصراف 🔴</button>
+        </div>
+    </div>
+
+    <div class="controls-row">
+        <div class="search-box">
+            <label>🔍 بحث بالاسم:</label>
+            <input type="text" id="workerSearchInput" onkeyup="filterAttendanceTable()" placeholder="اكتب الاسم...">
+        </div>
+        <div class="date-filter">
+            <label>📅 التاريخ:</label>
+            <div style="display:flex; gap:5px;">
+                <input type="date" id="historyDate" onchange="fetchLogs()">
+                <button onclick="resetToToday()" style="background:var(--primary); color:white; border:none; padding:8px; border-radius:8px; cursor:pointer; font-weight:bold;">اليوم</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="log-section">
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>حضور</th>
+                    <th>انصراف</th>
+                    <th>تعديل</th>
+                </tr>
+            </thead>
+            <tbody id="attendanceLogs"></tbody>
+        </table>
+    </div>
+</div>
+
+<script src="navigation.js"></script>
+
+<script>
+    const SUPABASE_URL = 'https://jkvjopwfrdkpzmcjrqbo.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprdmpvcHdmcmRrcHptY2pycWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzODA5NTksImV4cCI6MjA4MDk1Njk1OX0.P371b8Y3fovadr0l5LO-o-iL9cBoWIo3py6LgUxHeek';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    }, 1000);
+    document.getElementById('historyDate').valueAsDate = new Date();
+
+    async function loadWorkers() {
+        const { data } = await _supabase.from('permits').select('name, nid');
+        const select = document.getElementById('workerSelect');
+        if (data) {
+            select.innerHTML = '<option value="">-- اختر العامل --</option>';
+            data.forEach(w => { select.innerHTML += `<option value="${w.name}" data-nid="${w.nid}">${w.name}</option>`; });
+        }
+    }
+
+    async function markAttendance(type) {
+        const select = document.getElementById('workerSelect');
+        const name = select.value;
+        if (!name) return Swal.fire('تنبيه', 'برجاء اختيار العامل أولاً', 'warning');
+
+        const today = new Date().toISOString().split('T')[0];
+        const nowIso = new Date().toLocaleString("sv-SE").replace(" ", "T");
+
+        const { data: existingLogs } = await _supabase.from('attendance')
+            .select('*').eq('worker_name', name)
+            .gte('check_in', `${today}T00:00:00`).lte('check_in', `${today}T23:59:59`);
+
+        const openLog = existingLogs?.find(log => !log.check_out);
+
+        if (type === 'check_in') {
+            if (existingLogs?.length > 0) return Swal.fire('خطأ', 'العامل مسجل حضور بالفعل اليوم', 'error');
+            await _supabase.from('attendance').insert([{ worker_name: name, nid: select.options[select.selectedIndex].dataset.nid, check_in: nowIso, status: 'حاضر' }]);
+            Swal.fire('تم بنجاح', 'تم تسجيل الحضور', 'success');
+        } else {
+            if (!existingLogs?.length) return Swal.fire('خطأ', 'العامل لم يسجل حضور اليوم', 'error');
+            if (!openLog) return Swal.fire('تنبيه', 'تم تسجيل الانصراف مسبقاً', 'warning');
+            await _supabase.from('attendance').update({ check_out: nowIso }).eq('id', openLog.id);
+            Swal.fire('تم بنجاح', 'تم تسجيل الانصراف', 'info');
+        }
+        fetchLogs();
+    }
+
+    async function fetchLogs() {
+        const { data } = await _supabase.from('attendance').select('*').order('check_in', { ascending: false }).limit(100);
+        const tbody = document.getElementById('attendanceLogs');
+        tbody.innerHTML = '';
+        let lastDate = "";
+
+        if (data) {
+            data.forEach(log => {
+                const currentDate = new Date(log.check_in).toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' });
+                if (currentDate !== lastDate) {
+                    const sep = document.createElement('tr');
+                    sep.innerHTML = `<td colspan="4" class="date-separator">📅 ${currentDate}</td>`;
+                    tbody.appendChild(sep);
+                    lastDate = currentDate;
+                }
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="text-align:right;">${log.worker_name}</td>
+                    <td style="color:#10b981">${formatTime(log.check_in)}</td>
+                    <td style="color:#ef4444">${formatTime(log.check_out)}</td>
+                    <td><button class="edit-btn" onclick="editTime(${log.id}, '${log.check_in}', '${log.check_out || ''}')">✏️</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    }
+
+    function formatTime(iso) { return iso ? new Date(iso).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '-'; }
+
+    function filterAttendanceTable() {
+        const val = document.getElementById('workerSearchInput').value.toLowerCase();
+        document.querySelectorAll('#attendanceLogs tr:not(.date-separator)').forEach(row => {
+            row.style.display = row.cells[0].innerText.toLowerCase().includes(val) ? "" : "none";
+        });
+    }
+
+    window.editTime = async (id, currentIn, currentOut) => {
+        const { value: f } = await Swal.fire({
+            title: 'تعديل السجل',
+            html: `الحضور: <input id="ei" type="datetime-local" class="swal2-input" value="${currentIn.substring(0,16)}">` +
+                  `الانصراف: <input id="eo" type="datetime-local" class="swal2-input" value="${currentOut ? currentOut.substring(0,16) : ''}">`,
+            showCancelButton: true,
+            confirmButtonText: 'حفظ',
+            preConfirm: () => ({ in: document.getElementById('ei').value, out: document.getElementById('eo').value })
+        });
+        if (f) { await _supabase.from('attendance').update({ check_in: f.in, check_out: f.out }).eq('id', id); fetchLogs(); }
+    }
+
+    function resetToToday() { document.getElementById('historyDate').valueAsDate = new Date(); fetchLogs(); }
+
+    loadWorkers();
+    fetchLogs();
+</script>
+</body>
+</html>
+
