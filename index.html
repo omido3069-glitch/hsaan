@@ -1,1077 +1,247 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-<title>تسجيل السيارات - تخزين محلي ورفع إلى Firebase</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>جامعة حلوان الأهلية - إدارة الأمن الجامعي</title>
 <style>
-    :root {
-        --primary-bg: #e0f7fa; 
-        --form-bg: #b2ebf2;     
-        --input-bg: #ffffff; 
-        --input-border: #cccccc; 
-        --text-color: #333333; 
-        --button-color: #ffc107; 
-        --button-text-color: #000000; 
-        --entry-color: #4CAF50;  
-        --exit-color: #FF5252;   
-        --warning-color: #FF9800; 
-        --label-gradient: linear-gradient(90deg, #ffc107, #ff6f00, #ffc107);
-    }
+  body {
+    margin: 0;
+    font-family: "Cairo", sans-serif;
+    background: linear-gradient(135deg, #0e1f40, #1a3c6e, #274f8f);
+    background-size: 300% 300%;
+    animation: gradientMove 12s ease infinite;
+    color: white;
+    position: relative;
+    min-height: 100vh;
+  }
 
-    body {
-        font-family: 'Cairo', sans-serif;
-        margin: 0;
-        padding: 0; 
-        color: var(--text-color);
-        direction: rtl;
-        text-align: right;
-        min-height: 100vh;
-        background: #f5f5f5; 
-    }
-    
-    @keyframes textGradientMove {
-        0% { background-position: 0% 50%; }
-        100% { background-position: 100% 50%; }
-    }
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
 
-    .form-container {
-        max-width: 600px; 
-        margin: 0 auto;
-        padding: 30px 15px; 
-        background: none; 
-    }
+  .container {
+    max-width: 1100px; 
+    margin: 0 auto;
+    padding: 200px 20px 100px 20px; 
+    text-align: center;
+  }
 
-    .header-with-upload {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-    }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 30px;
+    padding: 20px;
+  }
 
-    .header-with-upload h2 {
-        margin: 0;
-        text-align: right;
-        flex-grow: 1;
-        font-size: 24px;
-        font-weight: bold;
-        color: var(--text-color);
-    }
+  .card {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(18px);
+    border-radius: 25px;
+    padding: 28px;
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    transition: transform 0.4s, box-shadow 0.4s, opacity 0.7s;
+    transform: translateY(0);
+    opacity: 0;
+    animation: cardEnter 0.7s forwards;
+  }
 
-    #uploadBtn {
-        width: 40px; 
-        height: 40px; 
-        padding: 0;
-        margin: 0;
-        font-size: 0; 
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: var(--entry-color); 
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
+  .card:hover {
+    transform: translateY(-10px) scale(1.03);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.35);
+  }
 
-    #uploadBtn:hover {
-        background: #45a049;
-    }
+  .card-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(255,255,255,0.25);
+    line-height: 1.4;
+  }
 
-    .upload-icon {
-        width: 24px; 
-        height: 24px;
-    }
+  .btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.25));
+    color: #fff;
+    font-size: 17px;
+    cursor: pointer;
+    border-radius: 14px;
+    transition: 0.3s;
+    font-weight: 600;
+  }
 
+  .btn:hover {
+    background: rgba(255,255,255,0.55);
+    letter-spacing: 1px;
+  }
 
-    .row-group {
-        display: flex; 
-        gap: 15px; 
-        margin-bottom: 25px;
-    }
+  .empty {
+    color: rgba(255,255,255,0.75);
+    margin-top: 15px;
+    font-size: 15px;
+  }
 
-    .row-group > .field-group {
-        flex: 1; 
-        margin-bottom: 0;
-        min-width: 130px; 
-    }
-    
-    .field-group {
-        position: relative; 
-        margin-bottom: 25px; 
-    }
+  .card-title i {
+    margin-left: 8px;
+    animation: pop 1.8s infinite ease-in-out;
+  }
 
-    label {
-        font-size: 16px; 
-        font-weight: 700;
-        display: block;
-        margin-bottom: 10px;
-        text-align: center; 
-        background: var(--label-gradient);
-        background-size: 200% auto; 
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent; 
-        animation: textGradientMove 15s linear infinite alternate; 
-    }
+  @keyframes pop {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.25); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+  }
 
-    input, select, textarea {
-        width: 100%;
-        padding: 14px 15px; 
-        background: var(--input-bg); 
-        border: 2px solid var(--input-border);
-        border-radius: 8px; 
-        font-size: 18px; 
-        color: var(--text-color);
-        outline: none;
-        transition: border-color 0.3s, box-shadow 0.3s;
-        box-sizing: border-box; 
-    }
-    
-    .search-filter-controls {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 20px;
-        padding: 0 15px;
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-    
-    #searchInput {
-        flex-grow: 1;
-        font-size: 16px;
-        padding: 10px 15px;
-    }
-    
-    #dateFilter {
-        flex-shrink: 0; 
-        width: 180px; 
-        font-size: 16px;
-        padding: 10px 15px;
-        color: var(--text-color); 
-        background: var(--input-bg); 
-        -webkit-appearance: none; 
-        appearance: none;
-        cursor: pointer;
-    }
-    
-    #number {
-        font-size: 20px; 
-        padding: 16px 15px; 
-    }
+  @keyframes cardEnter {
+    0% { opacity: 0; transform: translateY(25px) scale(0.96); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
 
-    input:focus, select:focus, textarea:focus {
-        border-color: var(--button-color); 
-        box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.3);
-    }
-    
-    textarea {
-        resize: vertical;
-        height: 60px !important; 
-    }
+  .card:nth-child(1) { animation-delay: 0.1s; }
+  .card:nth-child(2) { animation-delay: 0.2s; }
+  .card:nth-child(3) { animation-delay: 0.3s; }
+  .card:nth-child(4) { animation-delay: 0.4s; }
+  .card:nth-child(5) { animation-delay: 0.5s; }
+  .card:nth-child(6) { animation-delay: 0.6s; }
 
-    button {
-        width: 100%;
-        padding: 15px;
-        background: var(--button-color);
-        border: none;
-        border-radius: 8px;
-        font-size: 20px;
-        color: var(--button-text-color);
-        font-weight: bold;
-        cursor: pointer;
-        margin-top: 20px;
-        transition: background-color 0.3s, transform 0.1s;
-    }
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(15px);
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+    border-radius: 25px 25px 0 0;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    z-index: 1000;
+  }
 
-    button:hover {
-        background: #f0b800;
-    }
-    
-    /* أنماط الكروت (Suggestions Cards) */
-    #suggestionsContainer {
-        position: absolute;
-        bottom: 100%; 
-        right: 0;
-        left: 0;
-        margin-bottom: 10px; 
-        z-index: 99; 
-        padding: 10px;
-        background-color: transparent;
-        max-height: 100px; 
-        overflow-x: auto; 
-        overflow-y: hidden;
-        display: flex; 
-        gap: 8px;
-        pointer-events: none; 
-    }
+  .nav-item {
+    text-align: center;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
 
-    .suggestion-card {
-        flex-shrink: 0; 
-        padding: 8px 12px;
-        background-color: #ffffff; 
-        border: 1px solid #ffc107; 
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: bold;
-        color: var(--text-color);
-        cursor: pointer;
-        transition: background-color 0.2s, transform 0.1s;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        white-space: nowrap; 
-        text-align: center;
-    }
+  .nav-item i { font-size: 22px; margin-bottom: 4px; }
+  .nav-item:hover { transform: scale(1.15); }
 
-    .suggestion-card:hover {
-        background-color: #ffeb3b; 
-        transform: translateY(-2px);
-    }
+  @keyframes logoPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
 
-    .suggestion-card-name {
-        display: block;
-        font-size: 10px;
-        font-weight: normal;
-        color: #666;
-        margin-top: 2px;
-    }
+  .logo {
+    width: 140px;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(255,255,255,0.5);
+    border: 4px solid gold;
+    position: absolute;
+    top: 20px;
+    animation: logoPop 2s infinite ease-in-out;
+  }
+  .logo-left { left: 20px; }
+  .logo-right { right: 20px; }
 
-    /* تنسيق الجدول */
-    .table-section {
-        max-width: 100%;
-        margin: 30px 0;
-    }
-    
-    .table-container {
-        overflow-x: hidden; 
-        border-radius: 10px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
-        margin: 0 15px; 
-    }
+  .page-title {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-weight: 800;
+    background: linear-gradient(90deg, #ff5f6d, #ffc371, #47caff, #ff5f6d);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textGradient 5s ease infinite;
+    width: 100%;
+  }
 
-    table {
-        min-width: 100%; 
-        width: 100%;
-        border-collapse: collapse;
-        text-align: right;
-        background: none; 
-        table-layout: fixed; 
-    }
-    
-    .date-separator {
-        background: #d0f8ff; 
-        color: var(--button-color);
-        font-weight: bold;
-        text-align: center;
-        font-size: 14px;
-    }
-    .date-separator td {
-        padding: 10px;
-        border: none;
-        border-bottom: 2px solid #ffc107; 
-    }
+  .page-title h1 { margin: 0; font-size: clamp(24px, 5vw, 46px); }
+  .page-title h2 { margin: 0; font-size: clamp(18px, 3vw, 28px); font-weight: 600; opacity: 0.9; }
 
-    th {
-        background: #e0e0e0; 
-        color: var(--button-color);
-        font-weight: 700;
-        font-size: 12px; 
-        padding: 8px 4px; 
-        border-bottom: 1px solid #aaaaaa;
-        text-align: center;
-        white-space: normal; 
-        text-shadow: 0 0 3px rgba(0, 0, 0, 0.5); 
-    }
-    
-    th, td {
-        border-left: 1px solid #cccccc; 
-        padding: 8px 4px; 
-        text-align: center;
-        font-size: 11px; 
-        border-bottom: 1px solid #aaaaaa;
-        color: var(--text-color);
-        white-space: normal; 
-        word-wrap: break-word; 
-    }
-    
-    .entry-time {
-        color: var(--entry-color) !important;
-        font-weight: bold;
-    }
-    
-    td:last-child, th:last-child {
-        border-left: none;
-    }
+  @keyframes textGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
 
-    .exit-btn {
-        background: #dc3545; 
-        padding: 4px 6px; 
-        border: none;
-        color: white;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 12px; 
-        transition: background-color 0.3s;
-        width: auto; 
-    }
+  @media (max-width: 600px) {
+    .logo { width: 80px; top: 10px; }
+    .container { padding: 180px 15px 100px 15px; }
+    .page-title { top: 30px; }
+  }
 
-    .exit-btn:hover {
-        background: #c82333;
-    }
-
-    .exited {
-        background: #ffebee;
-        color: var(--exit-color) !important; 
-        font-weight: bold;
-        display: block; 
-        padding: 4px 0;
-        border-radius: 6px;
-    }
-    
-    #toast {
-        visibility: hidden; 
-        min-width: 250px; 
-        background-color: #333; 
-        color: #fff; 
-        text-align: center; 
-        border-radius: 12px; 
-        padding: 16px; 
-        position: fixed; 
-        z-index: 10; 
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%); 
-        font-size: 17px;
-        font-weight: bold;
-        box-shadow: 0 0 15px rgba(0,0,0,0.5); 
-        transition: opacity 0.5s, visibility 0.5s;
-        opacity: 0;
-    }
-
-    #toast.success {
-        background-color: var(--entry-color); 
-    }
-    #toast.danger {
-        background-color: var(--exit-color); 
-    }
-
-    #toast.warning {
-        background-color: var(--warning-color); 
-    }
-
-    #toast.show {
-        visibility: visible; 
-        opacity: 1;
-    }
-    
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
 
-<div id="toast"></div>
-<div class="form-container">
-    
-    <div class="header-with-upload">
-        <h2>تسجيل يومي للسيارات</h2>
-        <button id="uploadBtn" onclick="uploadCarsToFirebase()" title="رفع السجلات المحلية إلى Firebase">
-            <svg class="upload-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-            </svg>
-        </button>
+  <img src="1.png" alt="Logo Left" class="logo logo-left">
+  <img src="123.png" alt="Logo Right" class="logo logo-right">
+
+  <div class="page-title">
+    <h1>جامعة حلوان الأهلية</h1>
+    <h2>إدارة الأمن الجامعي</h2>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+      
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-broom"></i> شركة المؤسسة الوطنية (النظافة)</div>
+        <button class="btn" onclick="location.href='حضور.html'">حضور وانصراف</button>
+        <button class="btn" onclick="location.href='اسماء.html'">أسماء العمالة</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class='fa-solid fa-user-check'></i> الحضور والانصراف</div>
+        <button class="btn">الموظفين</button>
+        <button class="btn">أعضاء هيئة التدريس</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class='fa-solid fa-file-lines'></i> المذكرات</div>
+        <p class="empty">لا توجد أقسام فرعية</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class='fa-solid fa-mug-hot'></i> إدارة الكافتيريات</div>
+        <button class="btn">تصاريح الدخول والخروج</button>
+        <button class="btn">أسماء العاملين</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class='fa-solid fa-car'></i> سيستم السيارات</div>
+        <p class="empty">لا توجد أقسام فرعية</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class='fa-solid fa-truck-ramp-box'></i> تصاريح توريدات الجامعة والشركات</div>
+        <p class="empty">لا توجد أقسام فرعية</p>
+      </div>
+
     </div>
-
-    <form id="carForm">
-        
-        <div class="row-group">
-            <div class="field-group">
-                <label for="name">الاسم / السائق</label>
-                <input id="name" type="text" required placeholder="ادخل اسم السائق">
-            </div>
-
-            <div class="field-group">
-                <label for="gate">جهة الدخول</label>
-                <input id="gate" type="text" required placeholder="ادخل جهة الدخول">
-            </div>
-        </div>
-        
-        <div class="field-group">
-            <label for="notes">الملاحظات</label>
-            <textarea id="notes" placeholder="ملاحظات حول السيارة أو الزيارة"></textarea>
-        </div>
-
-        <div class="field-group">
-            <label for="number">رقم السيارة (اللوحة)</label>
-            <div id="suggestionsContainer"></div> 
-            <input id="number" type="text" required placeholder="ادخل رقم لوحة السيارة" oninput="displaySuggestions()"> 
-        </div>
-        
-        <button type="button" onclick="addCar()">تسجيل دخول الآن</button>
-    </form>
-</div>
-
-<div class="table-section">
-    <div class="search-filter-controls">
-        <input type="text" id="searchInput" placeholder="بحث بالاسم أو رقم اللوحة..." onkeyup="filterTable()">
-        
-        <select id="dateFilter" onchange="startRealtimeListener()">
-            <option value="">فلترة حسب التاريخ (اليوم)</option> 
-        </select>
-    </div>
-    
-    <div class="table-container">
-        <table id="carsTable">
-            <thead>
-                <tr>
-                    <th>الاسم</th>
-                    <th>رقم السيارة</th>
-                    <th>دخول</th>
-                    <th>جهة الدخول</th> 
-                    <th>خروج</th> 
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-<script>
-// تهيئة Firebase - البيانات الخاصة بك
-const firebaseConfig = {
-  apiKey: "AIzaSyDxZnTzssVZWtGR5iD6feE5d3BUFX3T5E0",
-  authDomain: "companies-4bcc8.firebaseapp.com",
-  databaseURL: "https://companies-4bcc8-default-rtdb.firebaseio.com",
-  projectId: "companies-4bcc8",
-  storageBucket: "companies-4bcc8.firebasestorage.app",
-  messagingSenderId: "688630422572",
-  appId: "1:688630422572:web:580391a664b0193383c589",
-  measurementId: "G-KPHEF2BY6M"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-const carsDayRef = db.ref('cars day'); // Reference for daily records
-const carsDataRef = db.ref('cars'); // Reference for master suggestions data
-
-// مفاتيح التخزين المحلي
-const LOCAL_ENTRIES_KEY = 'carDailyRecords';
-const LOCAL_MASTER_KEY = 'masterCarDetails';
-
-// متغيرات عالمية لتخزين البيانات محلياً
-let masterCarData = {}; 
-let carEntries = [];    
-let firebaseRecords = {}; // تخزين سجلات Firebase التي تم جلبها آخر مرة
-
-// متغير لتخزين مسار المستمع النشط (لإيقافه عند تغيير التاريخ)
-let activeListenerRef = null; 
-
-// =================================================================================
-// وظائف التخزين المحلي (Local Storage Utilities)
-// =================================================================================
-
-function loadLocalRecords() {
-    const data = localStorage.getItem(LOCAL_ENTRIES_KEY);
-    carEntries = data ? JSON.parse(data) : [];
-}
-
-function saveLocalRecords() {
-    localStorage.setItem(LOCAL_ENTRIES_KEY, JSON.stringify(carEntries));
-}
-
-function loadLocalMasterData() {
-    const data = localStorage.getItem(LOCAL_MASTER_KEY);
-    masterCarData = data ? JSON.parse(data) : {};
-}
-
-function saveLocalMasterData(carNumber, details) {
-    masterCarData[carNumber] = details;
-    localStorage.setItem(LOCAL_MASTER_KEY, JSON.stringify(masterCarData));
-}
-
-// =================================================================================
-// دالة: تحميل بيانات الاقتراحات (Master Data) من Firebase أولاً
-// =================================================================================
-function loadMasterCarData() {
-    carsDataRef.once('value', snapshot => {
-        let firebaseData = {};
-        
-        if (snapshot.exists()) {
-            snapshot.forEach(childSnapshot => {
-                const val = childSnapshot.val();
-                const carNumber = val.carNumber ? val.carNumber.trim() : null; 
-                
-                if (carNumber) {
-                    firebaseData[carNumber] = {
-                        name: val.ownerName || '', 
-                        gate: val.entrance || '',
-                        notes: val.notes || ''
-                    };
-                }
-            });
-            
-            masterCarData = firebaseData;
-            localStorage.setItem(LOCAL_MASTER_KEY, JSON.stringify(masterCarData));
-            showToast("تم تحديث الاقتراحات من Firebase بنجاح.", 'success');
-
-        } else {
-            loadLocalMasterData(); 
-            showToast("لا توجد بيانات اقتراحات في Firebase. تم استخدام البيانات المحلية.", 'warning');
-        }
-        
-    }, error => {
-        console.error("Firebase fetch error, loading local suggestions:", error);
-        loadLocalMasterData();
-        showToast("فشل الاتصال بـ Firebase. يتم استخدام الاقتراحات المخزنة محلياً.", 'danger');
-    });
-}
-// =================================================================================
-// وظائف العرض والمنطق
-// =================================================================================
-
-function getCurrentDateTimeParts() {
-    let d = new Date();
-    // تنسيق التاريخ ليكون متوافقاً مع مفاتيح Firebase (YYYY-MM-DD)
-    const dateOnly = d.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }); 
-    // تنسيق الوقت للعرض
-    const timeOnly = d.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true }); 
-
-    return { date: dateOnly, time: timeOnly, timestamp: d.getTime() };
-}
-
-function showToast(message, type = 'default') {
-    let toast = document.getElementById("toast");
-    toast.textContent = message;
-    
-    toast.className = ''; 
-    toast.classList.add('show');
-    toast.classList.add(type);
-
-    setTimeout(function(){ 
-        toast.classList.remove('show');
-    }, 3000); 
-}
-
-
-function displaySuggestions() {
-    const numberInput = document.getElementById('number');
-    const container = document.getElementById('suggestionsContainer');
-    const searchTerm = numberInput.value.toUpperCase().trim(); 
-    
-    container.innerHTML = '';
-    
-    let suggestionCount = 0;
-    
-    for (const carNumber in masterCarData) {
-        if (searchTerm.length === 0 || 
-            carNumber.toUpperCase().includes(searchTerm) || 
-            masterCarData[carNumber].name.toUpperCase().includes(searchTerm)) {
-            
-            if (suggestionCount >= 5) { 
-                break;
-            }
-            
-            const data = masterCarData[carNumber];
-            const card = document.createElement('div');
-            
-            card.classList.add('suggestion-card');
-            card.setAttribute('onclick', `fillCarDetails('${carNumber}')`);
-            
-            card.innerHTML = `
-                ${carNumber}
-                <span class="suggestion-card-name">${data.name}</span>
-            `;
-            
-            container.appendChild(card);
-            suggestionCount++;
-        }
-    }
-    
-    if (suggestionCount > 0) {
-        container.style.pointerEvents = 'auto'; 
-    } else {
-        container.style.pointerEvents = 'none';
-    }
-}
-
-
-function fillCarDetails(carNumber) {
-    const numberInput = document.getElementById('number');
-    const container = document.getElementById('suggestionsContainer');
-    
-    if (masterCarData[carNumber]) {
-        const data = masterCarData[carNumber];
-        
-        numberInput.value = carNumber; 
-        document.getElementById('name').value = data.name;
-        document.getElementById('gate').value = data.gate;
-        document.getElementById('notes').value = data.notes;
-        
-        container.innerHTML = '';
-        container.style.pointerEvents = 'none';
-        
-        showToast(`تم ملء بيانات السيارة رقم ${carNumber}`, 'success');
-    }
-}
-
-function checkIfCarIsInside(carNumber) {
-    // 1. التحقق من السجلات المحلية غير المرفوعة
-    const isLocalInside = carEntries.some(car => car.number === carNumber && !car.exitTime);
-
-    // 2. التحقق من السجلات المرفوعة (Firebase) لليوم الحالي
-    // نستخدم firebaseRecords المخزنة في الذاكرة لتاريخ العرض الحالي
-    const isFirebaseInside = Object.values(firebaseRecords).some(entry => 
-        entry.number === carNumber && !entry.exitTime
-    );
-
-    return isLocalInside || isFirebaseInside;
-}
-
-/**
- * تسجيل دخول سيارة جديدة: يتم تخزينها محلياً فقط.
- */
-function addCar() {
-    let name = document.getElementById("name").value;
-    let number = document.getElementById("number").value.trim(); 
-    let gate = document.getElementById("gate").value;
-    let notes = document.getElementById("notes").value; 
-    
-    if (!name || !number || !gate) {
-        showToast("⚠️ من فضلك أكمل الحقول المطلوبة", 'warning');
-        return;
-    }
-    
-    let dateTime = getCurrentDateTimeParts();
-    const normalizedNumber = number.toUpperCase().replace(/\s/g, '');
-    const uniqueKey = `${normalizedNumber}--${dateTime.timestamp}`; 
-
-    if (checkIfCarIsInside(number)) {
-        showToast(`❌ السيارة رقم ${number} مسجلة بالفعل دخول اليوم ولم تخرج بعد.`, 'warning');
-        return;
-    }
-
-    // 1. إنشاء كائن البيانات للدخول الجديد
-    const newCarEntry = {
-        uniqueKey: uniqueKey, 
-        name: name,
-        number: number,
-        gate: gate,
-        notes: notes,
-        entryTime: dateTime.time,
-        entryDate: dateTime.date, 
-        timestamp: dateTime.timestamp, 
-        isUploaded: false // تم تعيينها false لتظهر في عملية الرفع
-    };
-
-    // 2. إضافة السجل إلى المصفوفة المحلية وحفظها
-    carEntries.unshift(newCarEntry); 
-    saveLocalRecords(); 
-
-    // 3. تحديث البيانات الثابتة للاقتراحات محلياً
-    saveLocalMasterData(normalizedNumber, {
-        name: name,
-        gate: gate,
-        notes: notes 
-    });
-    
-    // 4. مسح حقل البحث النصي لضمان ظهور السجل الجديد
-    document.getElementById('searchInput').value = ''; 
-
-    // 5. إعادة رسم الجدول (لجلب بيانات Firebase + البيانات الجديدة)
-    renderTable(); 
-
-    // 6. مسح النموذج والإشعار
-    document.getElementById('suggestionsContainer').innerHTML = '';
-    document.getElementById('suggestionsContainer').style.pointerEvents = 'none';
-    showToast(`✅ تم تسجيل دخول السيارة رقم ${number} محلياً`, 'success');
-    document.getElementById("carForm").reset();
-}
-
-/**
- * دالة مساعدة: تجلب السجل المرفوع من Firebase باستخدام المفتاح الفريد.
- */
-function getFirebaseEntry(uniqueKey) {
-    const entry = firebaseRecords[uniqueKey];
-    if (entry) {
-        // نضمن أن المفتاح الفريد موجود وأنها معلمة كمرفوعة
-        return { ...entry, uniqueKey: uniqueKey, isUploaded: true };
-    }
-    return null;
-}
-
-
-/**
- * تسجيل الخروج: تحديث السجل في التخزين المحلي فقط، أو إنشاء سجل خروج مؤقت.
- */
-function exitCar(btn, uniqueKey) { 
-    let dateTime = getCurrentDateTimeParts();
-    let entryIndex = carEntries.findIndex(entry => entry.uniqueKey === uniqueKey);
-    let originalEntry = null;
-
-    if (entryIndex !== -1) {
-        // 1. السجل موجود محلياً (غير مرفوع)
-        carEntries[entryIndex].exitTime = dateTime.time;
-        carEntries[entryIndex].isUploaded = false; 
-        
-        showToast(`👋 تم تسجيل خروج السجل المحلي بنجاح. اضغط رفع!`, 'danger');
-
-    } else {
-        // 2. السجل مرفوع على Firebase (يجب إنشاء سجل محلي جديد بالخروج)
-        originalEntry = getFirebaseEntry(uniqueKey);
-
-        if (originalEntry && !originalEntry.exitTime) {
-            
-            // إنشاء سجل محلي جديد للخروج
-            const newLocalExitEntry = {
-                ...originalEntry,
-                exitTime: dateTime.time,
-                isUploaded: false, // يجب رفع هذا التحديث
-                // لكي لا يظهر سجلان لنفس السيارة، نحذف بيانات الدخول لهذا السجل
-                name: originalEntry.name, 
-                number: originalEntry.number,
-            };
-
-            // نحتاج لفلترة carEntries لضمان عدم وجود سجل دخول محلي قديم لنفس المفتاح الفريد
-            carEntries = carEntries.filter(entry => entry.uniqueKey !== uniqueKey);
-            
-            // إضافة السجل الجديد (المحدث) إلى السجلات المحلية
-            carEntries.unshift(newLocalExitEntry); 
-            showToast(`👋 تم تسجيل الخروج. اضغط رفع لإرسال التحديث إلى Firebase.`, 'danger');
-            
-        } else if (originalEntry && originalEntry.exitTime) {
-             showToast(`❌ السيارة تم تسجيل خروجها مسبقاً في Firebase.`, 'warning');
-             return;
-        } else {
-             showToast(`❌ تعذر العثور على السجل لتسجيل الخروج.`, 'warning');
-             return;
-        }
-    }
-    
-    saveLocalRecords();
-    renderTable(); // إعادة رسم الجدول ليعكس التغيير المحلي
-}
-
-/**
- * دالة الرفع: ترسل جميع السجلات غير المرفوعة ثم تحذفها من التخزين المحلي.
- */
-function uploadCarsToFirebase() {
-    // 1. تحديد السجلات التي تحتاج إلى رفع (isUploaded: false)
-    const recordsToUpload = carEntries.filter(entry => !entry.isUploaded);
-
-    if (recordsToUpload.length === 0) {
-        showToast("لا توجد سجلات جديدة للرفع.", 'warning');
-        return;
-    }
-
-    showToast(`جاري رفع ${recordsToUpload.length} سجل... الرجاء الانتظار`, 'warning');
-    document.getElementById('uploadBtn').disabled = true;
-
-    const updates = {};
-    const masterUpdates = {};
-
-    recordsToUpload.forEach(entry => {
-        const entryDate = entry.entryDate;
-        const key = entry.uniqueKey; 
-        const normalizedNumber = entry.number.toUpperCase().replace(/\s/g, '');
-
-        // 2. تحديث سجل الدخول اليومي (cars day/DATE/KEY)
-        updates[`cars day/${entryDate}/${key}`] = {
-            name: entry.name,
-            number: entry.number,
-            gate: entry.gate,
-            notes: entry.notes || '',
-            entryTime: entry.entryTime,
-            entryDate: entry.entryDate,
-            timestamp: entry.timestamp,
-            exitTime: entry.exitTime || null 
-        };
-
-        // 3. تحديث بيانات السيارة الثابتة (cars/NORMALIZED_NUMBER)
-        masterUpdates[`cars/${normalizedNumber}`] = {
-            carNumber: entry.number,
-            ownerName: entry.name,
-            entrance: entry.gate,
-            notes: entry.notes || ''
-        };
-    });
-    
-    // 4. إرسال تحديثات السجلات اليومية
-    db.ref().update(updates)
-        .then(() => {
-            // 5. إرسال تحديثات البيانات الثابتة (للاقتراحات)
-            return db.ref().update(masterUpdates);
-        })
-        .then(() => {
-            // ***** حذف السجلات المرفوعة من التخزين المحلي *****
-            const uploadedKeys = recordsToUpload.map(e => e.uniqueKey);
-            
-            // تصفية carEntries للاحتفاظ بالسجلات التي لم يتم رفعها
-            carEntries = carEntries.filter(entry => !uploadedKeys.includes(entry.uniqueKey));
-            
-            // 6. حفظ حالة المصفوفة الجديدة محلياً
-            saveLocalRecords();
-            
-            showToast(`✅ تم رفع ${recordsToUpload.length} سجل وحذفها من التخزين المحلي!`, 'success');
-            
-            // 7. إعادة تحميل البيانات (Firebase listener سيقوم بالتحديث التلقائي، لكن نحتاج تحديث الاقتراحات)
-            loadMasterCarData(); 
-        })
-        .catch(error => {
-            // 8. في حالة الخطأ، لا يتم تعديل التخزين المحلي
-            showToast(`❌ خطأ في الرفع. لم يتم حذف السجلات المحلية. ${error.message}`, 'danger');
-        })
-        .finally(() => {
-            document.getElementById('uploadBtn').disabled = false;
-        });
-}
-
-
-/**
- * دالة جديدة: تبدأ الاستماع في الوقت الفعلي لتاريخ محدد.
- */
-function startRealtimeListener() {
-    
-    // 1. تحديد تاريخ الفلتر الحالي
-    const todayDate = getCurrentDateTimeParts().date;
-    let selectedDate = document.getElementById('dateFilter').value;
-    
-    if (!selectedDate || selectedDate === "فلترة حسب التاريخ (اليوم)") { 
-        selectedDate = todayDate; 
-        document.getElementById('dateFilter').value = selectedDate;
-    }
-
-    // 2. إيقاف المستمع القديم لمنع تضارب البيانات
-    if (activeListenerRef) {
-        activeListenerRef.off();
-    }
-    
-    // 3. تحديد المسار الجديد وبدء الاستماع
-    const datePath = `cars day/${selectedDate}`;
-    const newListenerRef = db.ref(datePath);
-    activeListenerRef = newListenerRef;
-
-    showToast(`جارِ الاستماع لتحديثات ${selectedDate}...`, 'default');
-
-    newListenerRef.on('value', snapshot => {
-        
-        firebaseRecords = snapshot.val() || {}; // تحديث المتغير العالمي
-        
-        // بمجرد وصول البيانات الجديدة، نقوم برسم الجدول بالبيانات المدمجة
-        renderTable(); 
-        
-        // showToast(`تم تحديث الجدول تلقائيًا!`, 'success'); 
-
-    }, error => {
-        console.error("Firebase Realtime Listener Error:", error);
-        showToast("خطأ في الاستماع لـ Firebase. حاول تحديث الصفحة.", 'danger');
-    });
-    
-    // لضمان وجود البيانات في الفلتر في البداية
-    // لا نحتاج لـ populateDateFilter([]); هنا، فقط نتركها في مكانها الأصلي. 
-}
-
-
-/**
- * دالة مُحدَّثة: رسم الجدول باستخدام البيانات الموجودة حالياً في الذاكرة.
- */
-function renderTable() {
-    loadLocalRecords();
-    const tableBody = document.getElementById("carsTable").querySelector("tbody");
-    tableBody.innerHTML = ""; 
-
-    const selectedDate = document.getElementById('dateFilter').value;
-    
-    // 1. دمج سجلات Firebase وسجلات Local (للتاريخ المحدد فقط)
-    let finalCombinedEntriesMap = new Map();
-    
-    // أ. إضافة سجلات Firebase أولاً
-    Object.keys(firebaseRecords).forEach(key => {
-        const entry = firebaseRecords[key];
-        // يجب أن تكون السجلات المرفوعة تحمل نفس التاريخ المختار
-        if (entry.entryDate === selectedDate) { 
-            entry.uniqueKey = key; 
-            entry.isUploaded = true; 
-            finalCombinedEntriesMap.set(entry.uniqueKey, entry);
-        }
-    });
-    
-    // ب. إضافة/تحديث سجلات Local غير المرفوعة (تعطي أولوية على سجلات Firebase بنفس المفتاح)
-    const unsyncedLocalEntries = carEntries.filter(entry => 
-        !entry.isUploaded && entry.entryDate === selectedDate
-    );
-    
-    unsyncedLocalEntries.forEach(entry => finalCombinedEntriesMap.set(entry.uniqueKey, entry));
-    
-    // تحويل الخريطة إلى مصفوفة للفرز والعرض
-    let finalEntriesArray = Array.from(finalCombinedEntriesMap.values());
-    
-    // 2. فرز البيانات المدمجة
-    finalEntriesArray.sort((a, b) => b.timestamp - a.timestamp);
-
-    // 3. عرض البيانات المدمجة
-    let lastDate = "";
-    finalEntriesArray.forEach(entry => {
-        const entryDate = entry.entryDate;
-        const isLocalUnsynced = !entry.isUploaded;
-
-        if (entryDate !== lastDate) {
-            let separatorRow = document.createElement("tr");
-            separatorRow.classList.add('date-separator');
-            
-            const dateParts = new Date(entryDate).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            
-            separatorRow.innerHTML = `<td colspan="5">${dateParts}</td>`; 
-            separatorRow.setAttribute('data-separator-date', entryDate); 
-            tableBody.appendChild(separatorRow);
-            lastDate = entryDate;
-        }
-
-        let exitContent;
-        if (entry.exitTime) {
-            exitContent = `<span class="exited">${entry.exitTime}</span>`;
-        } else {
-             // زر الخروج يظهر لكل السيارات التي لم تسجل خروج
-            exitContent = `<button class="exit-btn" onclick="exitCar(this, '${entry.uniqueKey}')">خروج</button>`;
-        }
-                
-        // إضافة علامة بصرية للسجلات المحلية غير المرفوعة
-        const nameContent = isLocalUnsynced ? `<span style="color:red; font-weight: bold;">(لم يرفع)</span> ${entry.name}` : entry.name;
-                
-        let row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${nameContent}</td>
-            <td>${entry.number}</td>
-            <td class="entry-time">${entry.entryTime}</td> 
-            <td>${entry.gate}</td> 
-            <td class="exitCell">${exitContent}</td>
-        `;
-        row.setAttribute('data-entry-date', entryDate); 
-        row.setAttribute('data-notes', entry.notes || ''); 
-
-        tableBody.appendChild(row);
-    });
-    
-    // 4. تحديث فلتر التاريخ (استدعاء منفصل لتحميل التواريخ المتاحة)
-    updateAvailableDates();
-    
-    // 5. تطبيق فلترة البحث النصي
-    filterTable(); 
-}
-
-/* *************************************************************************
-   وظائف الفلترة المتبقية
-   ************************************************************************* */
-
-/**
- * دالة جديدة: لجلب جميع التواريخ المتاحة في Firebase لملء الفلتر.
- */
-function updateAvailableDates() {
-    const filterSelect = document.getElementById("dateFilter");
-    const currentValue = filterSelect.value;
-    const firstOption = filterSelect.options[0]; 
-
-    // مسح الخيارات القديمة باستثناء الخيار الأول
-    while (filterSelect.options.length > 1) {
-        filterSelect.remove(1);
-    }
-
-    carsDayRef.once('value', snapshot => {
-        const dates = new Set();
-        if (snapshot.exists()) {
-            snapshot.forEach(childSnapshot => {
-                dates.add(childSnapshot.key);
-            });
-        }
-        
-        // إضافة التواريخ من السجلات المحلية غير المرفوعة للتأكد من أنها تظهر في القائمة
-        carEntries.forEach(entry => {
-            if (!entry.isUploaded) {
-                dates.add(entry.entryDate);
-            }
-        });
-        
-        const sortedDates = Array.from(dates).sort((a, b) => b.localeCompare(a));
-        
-        // 3. إضافة التواريخ الجديدة
-        sortedDates.forEach(date => {
-            // التحقق من أن التاريخ ليس القيمة الافتراضية للفلاتر
-            if (date) { 
-                const dateDisplay = new Date(date).toLocaleDateString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' });
-                
-                const option = document.createElement('option');
-                option.value = date;
-                option.textContent = dateDisplay;
-                filterSelect.appendChild(option);
-            }
-        });
-
-        // 4. استعادة القيمة المختارة أو تعيينها لليوم
-        const todayDate = getCurrentDateTimeParts().date;
-
-        if (currentValue && sortedDates.includes(currentValue)) {
-            filterSelect.value = currentValue;
-        } else if (sortedDates.includes(todayDate)) {
-             filterSelect.value = todayDate;
-        } else if (sortedDates.length > 0) {
-             filterSelect.value = sortedDates[0];
-        } else {
-             // في حالة عدم وجود أي سجلات، نضمن أن فلتر التاريخ يعرض اليوم
-             if(todayDate) {
-                 const option = document.createElement('option');
-                 option.value = todayDate;
-                 option.textContent = new Date(todayDate).toLocaleDateString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' });
-                 filterSelect.appendChild(option);
-                 filterSelect.value = todayDate;
-             }
-        }
-    });
-}
-
-function filterTable() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-    const rows = document.getElementById('carsTable').querySelector('tbody').querySelectorAll('tr');
-
-    // لضمان عرض فواصل التاريخ في حالة وجود أي صف مطابق تحتها
-    let lastSeparator = null;
-    
-    rows.forEach(row => {
-        // إذا كان فاصل تاريخ، نحتفظ به ونتجاهل الفلترة حاليًا
-        if (row.classList.contains('date-separator')) {
-            lastSeparator = row;
-            row.style.display = 'none'; // نخفيها مبدئيًا ونعرضها فقط عند وجود سجلات تحتها
-            return;
-        } 
-        
-        // منطق فلترة صف السيارة (فقط بالبحث النصي)
-        const name = row.cells[0].textContent.toLowerCase();
-        const number = row.cells[1].textContent.toLowerCase();
-
-        const matchesSearch = (name.includes(searchTerm) || number.includes(searchTerm));
-
-        if (matchesSearch) {
-            row.style.display = '';
-            // إذا كان الصف مطابقًا للبحث، نضمن عرض فاصل التاريخ الخاص به
-            if (lastSeparator) {
-                lastSeparator.style.display = '';
-            }
-        } else {
-            row.style.display = 'none';
-        }
-    });
-}
-
-
-// البدء في تحميل البيانات
-document.addEventListener('DOMContentLoaded', () => {
-    loadMasterCarData();      // يحمل بيانات الاقتراحات مرة واحدة
-    startRealtimeListener();  // يبدأ الاستماع لسجلات اليوم تلقائياً
-}); 
-</script>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="location.href='index.html'"><i class="fa-solid fa-house"></i><br>الرئيسية</div>
+    <div class="nav-item"><i class="fa-solid fa-bell"></i><br>الإشعارات</div>
+    <div class="nav-item"><i class="fa-solid fa-user-shield"></i><br>الأمن</div>
+    <div class="nav-item"><i class="fa-solid fa-gear"></i><br>الإعدادات</div>
+  </div>
 
 </body>
 </html>
