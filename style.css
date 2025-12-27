@@ -1,0 +1,37 @@
+/* ملف style.css المحدث */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    /* تم تغيير الخلفية من شفافة إلى لون صلب جذاب */
+    background: #1a3c6e; 
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+    border-radius: 25px 25px 0 0;
+    border-top: 2px solid #fbbf24; /* إضافة خط علوي ذهبي ليعطي شكلاً أفخم */
+    z-index: 1000;
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+}
+
+.nav-item {
+    text-align: center;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+    flex: 1; /* لتوزيع المسافات بالتساوي */
+}
+
+.nav-item i { 
+    font-size: 22px; 
+    margin-bottom: 4px;
+    color: #fbbf24; /* جعل الأيقونات باللون الذهبي لتبرز */
+}
+
+.nav-item:hover {
+    transform: translateY(-3px);
+    color: #fbbf24;
+}
+
