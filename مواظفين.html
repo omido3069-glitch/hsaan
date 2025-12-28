@@ -3,260 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الموظفين المطور - جامعة حلوان الأهلية</title>
+    <title>نظام حضور وانصراف الموظفين المتطور</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        :root {
-            --primary: #0f172a;
-            --accent: #f59e0b; 
-            --main-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            --gold: #fbbf24;
-        }
+        :root { --primary: #0f172a; --accent: #f59e0b; --gold: #fbbf24; }
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); min-height: 100vh; margin: 0; padding: 20px; color: #f1f5f9; }
 
-        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; transition: 0.3s; }
+        .container { max-width: 1200px; margin: auto; }
+        .attendance-card, .filter-section { background: white; border-radius: 15px; padding: 20px; color: #1e293b; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
 
-        body { 
-            background: var(--main-gradient); 
-            background-attachment: fixed; min-height: 100vh;
-            margin: 0; padding: 20px; color: #f1f5f9; position: relative;
-        }
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end; }
+        .label-text { font-weight: 800; color: var(--primary); display: block; margin-bottom: 5px; text-align: right; }
+        
+        .input-style { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #e2e8f0; font-weight: 700; font-size: 1.1rem; color: #000; }
 
-        .logo-left, .logo-right { position: absolute; top: 20px; z-index: 1000; }
-        .logo-left { left: 30px; } .logo-right { right: 30px; }
-        .logo-left img, .logo-right img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--gold); background: white; }
+        .btn-action { padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer; font-weight: 800; color: white; transition: 0.3s; }
+        .btn-save { background: #10b981; width: 100%; font-size: 1.2rem; margin-top: 15px; }
 
-        .container { max-width: 1100px; margin: auto; padding-top: 20px; }
+        .log-table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; color: #000; margin-top: 10px; }
+        .log-table th { background: var(--primary); color: white; padding: 18px; font-size: 1.1rem; }
+        .log-table td { padding: 15px; text-align: center; border-bottom: 1px solid #eee; font-weight: 800; font-size: 1.25rem; }
 
-        .header { text-align: center; margin-bottom: 30px; margin-top: 40px; }
-        .header h1 {
-            background: linear-gradient(270deg, #f59e0b, #fbbf24, #ffffff);
-            background-size: 400% 400%; -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent; font-weight: 800; font-size: 2.5rem;
-            animation: slowGradient 15s ease infinite;
-        }
-        @keyframes slowGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .date-separator { background: #f8fafc !important; color: var(--primary); font-size: 1.3rem; text-align: center !important; font-weight: 800; border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); }
+        
+        .btn-out-table { background: #ef4444; color: white; border: none; padding: 5px 15px; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; font-weight: bold; }
+        .btn-out-table:hover { background: #dc2626; }
 
-        .attendance-card {
-            background: #ffffff; border-radius: 20px; padding: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4); margin-bottom: 30px; color: #1e293b;
-            text-align: center;
-        }
-
-        .label-text { font-weight: 800; color: var(--primary); margin-bottom: 8px; display: block; text-align: right; font-size: 1.1rem; }
-
-        .select-box, .time-input {
-            width: 100%; padding: 15px; border-radius: 12px;
-            border: 2px solid #e2e8f0; font-size: 1.2rem; font-weight: 700;
-            outline: none; background: #f8fafc; color: #000;
-        }
-
-        .btn-save {
-            width: 100%; padding: 18px; border: none; border-radius: 12px;
-            background: #10b981; color: white; font-weight: 800; font-size: 1.4rem;
-            cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        }
-        .btn-save:hover { background: #059669; transform: translateY(-2px); }
-
-        .log-section { background: white; border-radius: 20px; padding: 25px; color: #1e293b; overflow: hidden; }
-        .log-table { width: 100%; border-collapse: collapse; }
-        .log-table th { background: var(--primary); color: white; padding: 18px; font-size: 1.2rem; }
-        .log-table td { 
-            padding: 15px; text-align: center; border-bottom: 1px solid #f1f5f9; 
-            font-weight: 800; font-size: 1.3rem; color: #000000;
-        }
-
-        .date-separator {
-            background: #f8fafc !important; font-weight: 800 !important;
-            color: var(--primary); text-align: center !important;
-            padding: 15px !important; font-size: 1.4rem;
-            border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent);
-        }
-
-        .fab {
-            position: fixed; bottom: 30px; left: 30px;
-            width: 70px; height: 70px; background: var(--accent);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.4); cursor: pointer; z-index: 2000;
-            border: 3px solid white; font-size: 32px; color: white;
-        }
-        .fab:hover { transform: rotate(90deg) scale(1.1); background: var(--gold); }
+        .edit-btn { color: #3b82f6; cursor: pointer; margin-left: 15px; font-size: 1.3rem; }
+        .delete-btn { color: #64748b; cursor: pointer; font-size: 1.3rem; }
+        
+        .fab { position: fixed; bottom: 30px; left: 30px; width: 65px; height: 65px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 28px; color: white; border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
     </style>
 </head>
 <body>
 
-<div class="logo-left"><img src="1.png"></div>
-<div class="logo-right"><img src="123.png"></div>
-
-<div class="fab" title="إضافة موظف جديد للقائمة" onclick="showAddEmployeePopup()">➕</div>
+<div class="fab" title="إضافة موظف جديد للقائمة" onclick="showAddEmployeePopup()">👤+</div>
 
 <div class="container">
-    <div class="header">
-        <h1>حضور وانصراف الموظفين</h1>
-        <p style="color: #fbbf24; font-weight: bold; font-size: 1.2rem;">جامعة حلوان الأهلية - نظام الإدخال اليدوي</p>
-    </div>
+    <h1 style="text-align: center; color: var(--gold); text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">نظام حضور وانصراف الموظفين</h1>
 
     <div class="attendance-card">
-        <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="grid-inputs">
             <div>
-                <span class="label-text">اختر اسم الموظف:</span>
-                <select id="employeeSelect" class="select-box">
-                    <option value="">-- جاري تحميل القائمة... --</option>
-                </select>
+                <span class="label-text">اسم الموظف:</span>
+                <select id="employeeSelect" class="input-style"></select>
             </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div>
-                    <span class="label-text">وقت الحضور اليدوي:</span>
-                    <input type="time" id="manualIn" class="time-input">
-                </div>
-                <div>
-                    <span class="label-text">وقت الانصراف اليدوي:</span>
-                    <input type="time" id="manualOut" class="time-input">
-                </div>
+            <div>
+                <span class="label-text">ساعة الحضور:</span>
+                <input type="time" id="manualIn" class="input-style">
             </div>
-            
-            <button class="btn-save" onclick="saveRecord()">حفظ السجل في الجدول 💾</button>
+            <div style="visibility: hidden; height: 0; position: absolute;">
+                 <input type="time" id="manualOut"> </div>
+        </div>
+        <button class="btn-action btn-save" onclick="saveNewAttendance()">تسجيل حضور جديد 🟢</button>
+    </div>
+
+    <div class="filter-section">
+        <div class="grid-inputs">
+            <div>
+                <span class="label-text">بحث بالاسم:</span>
+                <input type="text" id="searchName" class="input-style" placeholder="ابحث هنا..." oninput="fetchLogs()">
+            </div>
+            <div>
+                <span class="label-text">تصفية بالتاريخ:</span>
+                <input type="date" id="filterDate" class="input-style" onchange="fetchLogs()">
+            </div>
+            <button class="btn-action" style="background: var(--primary);" onclick="resetFilters()">عرض الكل</button>
         </div>
     </div>
 
-    <div class="log-section">
-        <table class="log-table">
-            <thead>
-                <tr>
-                    <th>الموظف ومكان العمل</th>
-                    <th>الحضور</th>
-                    <th>الانصراف</th>
-                    <th>حذف</th>
-                </tr>
-            </thead>
-            <tbody id="attendanceLogs"></tbody>
-        </table>
-    </div>
+    <table class="log-table">
+        <thead>
+            <tr>
+                <th>اسم الموظف ومكان العمل</th>
+                <th>وقت الحضور</th>
+                <th>وقت الانصراف</th>
+                <th>إجراءات</th>
+            </tr>
+        </thead>
+        <tbody id="attendanceLogs"></tbody>
+    </table>
 </div>
 
 <script>
-    // بيانات الربط (تأكد من وضع بياناتك الصحيحة هنا)
     const SUPABASE_URL = 'https://jkvjopwfrdkpzmcjrqbo.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprdmpvcHdmcmRrcHptY2pycWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzODA5NTksImV4cCI6MjA4MDk1Njk1OX0.P371b8Y3fovadr0l5LO-o-iL9cBoWIo3py6LgUxHeek';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 1. إضافة موظف لجدول employees_list
-    async function showAddEmployeePopup() {
-        const { value: formValues } = await Swal.fire({
-            title: 'إضافة موظف جديد للقائمة',
-            html: `
-                <input id="swal-name" class="swal2-input" placeholder="الاسم بالكامل" style="font-family:Cairo; font-weight:bold;">
-                <input id="swal-job" class="swal2-input" placeholder="مكان العمل / الإدارة" style="font-family:Cairo; font-weight:bold;">
-            `,
-            confirmButtonText: 'إضافة الآن',
-            showCancelButton: true,
-            cancelButtonText: 'إلغاء',
-            preConfirm: () => {
-                const name = document.getElementById('swal-name').value;
-                const job = document.getElementById('swal-job').value;
-                if (!name || !job) { Swal.showValidationMessage('يرجى ملء الخانتين'); }
-                return { name, job };
-            }
-        });
-
-        if (formValues) {
-            Swal.showLoading();
-            const fullName = `${formValues.name} (${formValues.job})`;
-            const { error } = await _supabase.from('employees_list').insert([{ name: fullName }]);
-
-            if (error) {
-                Swal.fire('خطأ', 'تأكد من تفعيل الـ RLS Policy لجدول employees_list: ' + error.message, 'error');
-            } else {
-                Swal.fire('تم', 'تمت إضافة الموظف بنجاح', 'success');
-                loadEmployees();
-            }
-        }
-    }
-
-    // 2. تحميل الأسماء للقائمة المنسدلة من employees_list
-    async function loadEmployees() {
-        const { data, error } = await _supabase.from('employees_list').select('name').order('name');
-        const select = document.getElementById('employeeSelect');
-        select.innerHTML = '<option value="">-- اختر الموظف من هنا --</option>';
-        if (data) {
-            data.forEach(e => { select.innerHTML += `<option value="${e.name}">${e.name}</option>`; });
-        }
-    }
-
-    // 3. حفظ الحضور والانصراف في جدول attendance_employees
-    async function saveRecord() {
-        const empName = document.getElementById('employeeSelect').value;
+    // 1. منع التكرار وتسجيل الحضور
+    async function saveNewAttendance() {
+        const name = document.getElementById('employeeSelect').value;
         const inT = document.getElementById('manualIn').value;
-        const outT = document.getElementById('manualOut').value;
         const today = new Date().toISOString().split('T')[0];
 
-        if (!empName || !inT) return Swal.fire('تنبيه', 'يجب اختيار الاسم ووقت الحضور', 'warning');
+        if (!name || !inT) return Swal.fire('تنبيه', 'برجاء اختيار الموظف ووقت الحضور', 'warning');
+
+        // التحقق هل الموظف مسجل اليوم؟
+        const { data: existing } = await _supabase.from('attendance_employees')
+            .select('*')
+            .eq('worker_name', name)
+            .gte('check_in', `${today}T00:00:00`)
+            .lte('check_in', `${today}T23:59:59`);
+
+        if (existing && existing.length > 0) {
+            return Swal.fire({
+                icon: 'error',
+                title: 'عذراً!',
+                text: `الموظف (${name}) مسجل حضور بالفعل اليوم!`,
+                confirmButtonText: 'حسناً'
+            });
+        }
 
         const { error } = await _supabase.from('attendance_employees').insert([{
-            worker_name: empName,
+            worker_name: name,
             check_in: `${today}T${inT}:00`,
-            check_out: outT ? `${today}T${outT}:00` : null
+            status: 'حاضر'
         }]);
 
         if (error) {
-            Swal.fire('خطأ', 'حدثت مشكلة أثناء الحفظ: ' + error.message, 'error');
+            Swal.fire('خطأ', error.message, 'error');
         } else {
-            Swal.fire({ icon: 'success', title: 'تم الحفظ', timer: 1000, showConfirmButton: false });
+            Swal.fire('تم', 'تم تسجيل حضور الموظف بنجاح', 'success');
             fetchLogs();
             document.getElementById('manualIn').value = '';
-            document.getElementById('manualOut').value = '';
         }
     }
 
-    // 4. عرض السجلات بتنسيقك المفضل
+    // 2. تسجيل الخروج من الجدول
+    async function setSignOut(id, checkInDate) {
+        const datePart = checkInDate.split('T')[0];
+        
+        const { value: outTime } = await Swal.fire({
+            title: 'تسجيل انصراف',
+            html: `<label style="font-weight:bold">اختر ساعة الانصراف:</label>
+                   <input type="time" id="swalOutTime" class="swal2-input">`,
+            confirmButtonText: 'حفظ الانصراف 🔴',
+            showCancelButton: true,
+            preConfirm: () => {
+                const time = document.getElementById('swalOutTime').value;
+                if (!time) { Swal.showValidationMessage('يجب تحديد الوقت'); }
+                return time;
+            }
+        });
+
+        if (outTime) {
+            await _supabase.from('attendance_employees')
+                .update({ check_out: `${datePart}T${outTime}:00` })
+                .eq('id', id);
+            fetchLogs();
+        }
+    }
+
+    // 3. عرض البيانات في الجدول
     async function fetchLogs() {
-        const { data } = await _supabase.from('attendance_employees').select('*').order('check_in', { ascending: false }).limit(50);
+        let query = _supabase.from('attendance_employees').select('*').order('check_in', { ascending: false });
+        
+        const search = document.getElementById('searchName').value;
+        const fDate = document.getElementById('filterDate').value;
+
+        if (search) query = query.ilike('worker_name', `%${search}%`);
+        if (fDate) query = query.gte('check_in', `${fDate}T00:00:00`).lte('check_in', `${fDate}T23:59:59`);
+
+        const { data } = await query;
+        renderTable(data);
+    }
+
+    function renderTable(data) {
         const tbody = document.getElementById('attendanceLogs');
         tbody.innerHTML = '';
         let lastDate = "";
 
-        if (data) {
-            data.forEach(log => {
-                const currentDate = new Date(log.check_in).toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-                
-                if (currentDate !== lastDate) {
-                    const sep = document.createElement('tr');
-                    sep.innerHTML = `<td colspan="4" class="date-separator">ــــــــــــــــــــــــ  📅 ${currentDate}  ــــــــــــــــــــــــ</td>`;
-                    tbody.appendChild(sep);
-                    lastDate = currentDate;
-                }
+        data?.forEach(log => {
+            const dateStr = new Date(log.check_in).toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long'});
+            if (dateStr !== lastDate) {
+                tbody.innerHTML += `<tr><td colspan="4" class="date-separator">📅 ${dateStr}</td></tr>`;
+                lastDate = dateStr;
+            }
 
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td style="text-align:right; padding-right:30px;">${log.worker_name}</td>
-                    <td style="color:#10b981">${formatT(log.check_in)}</td>
-                    <td style="color:#ef4444">${formatT(log.check_out)}</td>
-                    <td><button onclick="delRecord(${log.id})" style="border:none; cursor:pointer; background:none; font-size:1.3rem;">🗑️</button></td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
+            const outCell = log.check_out 
+                ? `<span style="color:#ef4444">${formatTime(log.check_out)}</span>` 
+                : `<button class="btn-out-table" onclick="setSignOut(${log.id}, '${log.check_in}')">تسجيل خروج 🔴</button>`;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td style="text-align:right; padding-right:40px;">${log.worker_name}</td>
+                    <td style="color:#10b981">${formatTime(log.check_in)}</td>
+                    <td>${outCell}</td>
+                    <td>
+                        <span class="edit-btn" onclick="editFullRecord(${log.id}, '${log.check_in}', '${log.check_out}')">✏️</span>
+                        <span class="delete-btn" onclick="deleteRec(${log.id})">🗑️</span>
+                    </td>
+                </tr>`;
+        });
     }
 
-    function formatT(iso) {
-        if (!iso) return '-';
-        return new Date(iso).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    // 4. تحميل قائمة الأسماء من employees_list
+    async function loadEmployees() {
+        const { data } = await _supabase.from('employees_list').select('name').order('name');
+        const select = document.getElementById('employeeSelect');
+        select.innerHTML = '<option value="">-- اختر الموظف --</option>';
+        data?.forEach(e => { select.innerHTML += `<option value="${e.name}">${e.name}</option>`; });
     }
 
-    async function delRecord(id) {
-        const result = await Swal.fire({ title: 'هل أنت متأكد؟', text: "سيتم حذف هذا السجل نهائياً", icon: 'warning', showCancelButton: true, confirmButtonText: 'نعم، احذف', cancelButtonText: 'إلغاء' });
-        if (result.isConfirmed) {
+    // وظائف مساعدة
+    function formatTime(iso) { return iso ? new Date(iso).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}) : '-'; }
+    
+    async function deleteRec(id) {
+        if(confirm("هل تريد حذف هذا السجل؟")) {
             await _supabase.from('attendance_employees').delete().eq('id', id);
             fetchLogs();
         }
     }
 
+    async function editFullRecord(id, oldIn, oldOut) {
+        const inT = oldIn.split('T')[1].substring(0,5);
+        const outT = oldOut ? oldOut.split('T')[1].substring(0,5) : "";
+        const d = oldIn.split('T')[0];
+
+        const { value: val } = await Swal.fire({
+            title: 'تعديل السجل',
+            html: `الحضور: <input id="ei" type="time" class="swal2-input" value="${inT}"><br>
+                   الانصراف: <input id="eo" type="time" class="swal2-input" value="${outT}">`,
+            preConfirm: () => ({ i: document.getElementById('ei').value, o: document.getElementById('eo').value })
+        });
+
+        if (val) {
+            await _supabase.from('attendance_employees').update({
+                check_in: `${d}T${val.i}:00`,
+                check_out: val.o ? `${d}T${val.o}:00` : null
+            }).eq('id', id);
+            fetchLogs();
+        }
+    }
+
+    function resetFilters() { document.getElementById('searchName').value=''; document.getElementById('filterDate').value=''; fetchLogs(); }
+    
     loadEmployees();
     fetchLogs();
 </script>
 </body>
 </html>
-
