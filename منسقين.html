@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حضور وانصراف منسقين الكليات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root { --primary: #0f172a; --accent: #f59e0b; --gold: #fbbf24; }
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; transition: 0.3s; }
+        body { 
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
+            background-attachment: fixed; min-height: 100vh; margin: 0; padding: 20px; color: #f1f5f9; 
+        }
+
+        .logo-left, .logo-right { position: absolute; top: 20px; z-index: 1000; }
+        .logo-left { left: 30px; } .logo-right { right: 30px; }
+        .logo-left img, .logo-right img { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--gold); background: white; }
+
+        .container { max-width: 1100px; margin: auto; padding-top: 20px; }
+        .header { text-align: center; margin-bottom: 30px; margin-top: 40px; }
+        .header h1 { font-weight: 800; font-size: 2.2rem; color: var(--gold); text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+
+        .card { background: white; border-radius: 15px; padding: 25px; color: #1e293b; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .label-text { font-weight: 800; color: var(--primary); display: block; margin-bottom: 8px; text-align: right; font-size: 1.1rem; }
+        
+        .input-style { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #e2e8f0; font-weight: 800; font-size: 1.1rem; color: #000; outline: none; }
+
+        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 12px; background: #10b981; color: white; font-weight: 800; font-size: 1.3rem; cursor: pointer; margin-top: 15px; }
+        .btn-main:hover { background: #059669; transform: translateY(-2px); }
+
+        .log-table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; color: #000; }
+        .log-table th { background: var(--primary); color: white; padding: 15px; font-size: 1.1rem; }
+        .log-table td { padding: 15px; text-align: center; border-bottom: 1px solid #eee; font-weight: 800; font-size: 1.3rem; color: #000; }
+
+        .date-separator { background: #f8fafc !important; color: var(--primary); font-size: 1.4rem; font-weight: 800; border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); }
+        
+        .btn-out { background: #ef4444; color: white; border: none; padding: 6px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        
+        .fab { position: fixed; bottom: 30px; left: 30px; width: 65px; height: 65px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 30px; color: white; border: 3px solid white; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 2000; }
+    </style>
+</head>
+<body>
+
+<div class="logo-left"><img src="1.png"></div>
+<div class="logo-right"><img src="123.png"></div>
+
+<div class="fab" title="إضافة منسق جديد" onclick="showAddCoordinatorPopup()">👤+</div>
+
+<div class="container">
+    <div class="header">
+        <h1>حضور وانصراف منسقين الكليات</h1>
+        <p style="color: #fff; font-weight: bold;">جامعة حلوان الأهلية - قسم المنسقين</p>
+    </div>
+
+    <div class="card">
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px;">
+            <div>
+                <span class="label-text">اختر المنسق:</span>
+                <select id="coordinatorSelect" class="input-style"></select>
+            </div>
+            <div>
+                <span class="label-text">وقت الحضور اليدوي:</span>
+                <input type="time" id="manualIn" class="input-style">
+            </div>
+        </div>
+        <button class="btn-main" onclick="saveNewAttendance()">حفظ تسجيل الحضور للمنسق 🟢</button>
+    </div>
+
+    <div class="card" style="padding: 15px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <input type="text" id="searchName" class="input-style" placeholder="🔍 بحث عن منسق..." oninput="fetchLogs()">
+            <input type="date" id="filterDate" class="input-style" onchange="fetchLogs()">
+        </div>
+    </div>
+
+    <table class="log-table">
+        <thead>
+            <tr>
+                <th>اسم المنسق والكلية</th>
+                <th>الحضور</th>
+                <th>الانصراف</th>
+                <th>إجراءات</th>
+            </tr>
+        </thead>
+        <tbody id="attendanceLogs"></tbody>
+    </table>
+    <div id="bottomAnchor"></div>
+</div>
+
+<script>
+    // بيانات الربط
+    const SUPABASE_URL = 'https://jkvjopwfrdkpzmcjrqbo.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprdmpvcHdmcmRrcHptY2pycWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzODA5NTksImV4cCI6MjA4MDk1Njk1OX0.P371b8Y3fovadr0l5LO-o-iL9cBoWIo3py6LgUxHeek';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 1. تسجيل حضور جديد في جدول coordinators_attendance
+    async function saveNewAttendance() {
+        const name = document.getElementById('coordinatorSelect').value;
+        const inT = document.getElementById('manualIn').value;
+        const today = new Date().toISOString().split('T')[0];
+
+        if (!name || !inT) return Swal.fire('تنبيه', 'برجاء اختيار الاسم والوقت', 'warning');
+
+        // التحقق من التكرار اليومي للمنسق
+        const { data: existing } = await _supabase.from('coordinators_attendance')
+            .select('id').eq('worker_name', name)
+            .gte('check_in', `${today}T00:00:00`).lte('check_in', `${today}T23:59:59`);
+
+        if (existing && existing.length > 0) {
+            return Swal.fire('خطأ', 'المنسق مسجل حضور بالفعل اليوم!', 'error');
+        }
+
+        const { error } = await _supabase.from('coordinators_attendance').insert([{
+            worker_name: name,
+            check_in: `${today}T${inT}:00`
+        }]);
+
+        if (error) { Swal.fire('خطأ', error.message, 'error'); }
+        else {
+            Swal.fire({ icon: 'success', title: 'تم تسجيل الحضور', timer: 1500 });
+            fetchLogs(true);
+        }
+    }
+
+    // 2. تسجيل الخروج في الجدول
+    async function setSignOut(id, checkInDate) {
+        const datePart = checkInDate.split('T')[0];
+        const { value: outTime } = await Swal.fire({
+            title: 'وقت الانصراف اليدوي',
+            html: '<input type="time" id="swalOut" class="swal2-input">',
+            confirmButtonText: 'تسجيل خروج',
+            preConfirm: () => document.getElementById('swalOut').value || Swal.showValidationMessage('حدد الوقت')
+        });
+
+        if (outTime) {
+            await _supabase.from('coordinators_attendance').update({ check_out: `${datePart}T${outTime}:00` }).eq('id', id);
+            fetchLogs();
+        }
+    }
+
+    // 3. جلب السجلات وترتيبها (الأحدث بالأسفل) من جدول المنسقين
+    async function fetchLogs(scrollToBottom = false) {
+        let query = _supabase.from('coordinators_attendance').select('*').order('check_in', { ascending: true });
+        
+        const search = document.getElementById('searchName').value;
+        const fDate = document.getElementById('filterDate').value;
+
+        if (search) query = query.ilike('worker_name', `%${search}%`);
+        if (fDate) query = query.gte('check_in', `${fDate}T00:00:00`).lte('check_in', `${fDate}T23:59:59`);
+
+        const { data } = await query;
+        const tbody = document.getElementById('attendanceLogs');
+        tbody.innerHTML = '';
+        let lastDate = "";
+
+        data?.forEach(log => {
+            const dateStr = new Date(log.check_in).toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long'});
+            if (dateStr !== lastDate) {
+                tbody.innerHTML += `<tr><td colspan="4" class="date-separator">📅 ${dateStr}</td></tr>`;
+                lastDate = dateStr;
+            }
+
+            const outContent = log.check_out 
+                ? `<span style="color:#ef4444">${formatTime(log.check_out)}</span>`
+                : `<button class="btn-out" onclick="setSignOut(${log.id}, '${log.check_in}')">خروج 🔴</button>`;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td style="text-align:right; padding-right:30px;">${log.worker_name}</td>
+                    <td style="color:#10b981">${formatTime(log.check_in)}</td>
+                    <td>${outContent}</td>
+                    <td>
+                        <span onclick="editRecord(${log.id}, '${log.check_in}', '${log.check_out}')" style="cursor:pointer; margin-left:10px;">✏️</span>
+                        <span onclick="deleteRec(${log.id})" style="cursor:pointer;">🗑️</span>
+                    </td>
+                </tr>`;
+        });
+
+        if (scrollToBottom) {
+            document.getElementById('bottomAnchor').scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    // 4. تحميل قائمة المنسقين من جدول coordinators_list
+    async function loadEmployees() {
+        const { data } = await _supabase.from('coordinators_list').select('name').order('name');
+        const select = document.getElementById('coordinatorSelect');
+        select.innerHTML = '<option value="">-- اختر المنسق --</option>';
+        data?.forEach(e => { select.innerHTML += `<option value="${e.name}">${e.name}</option>`; });
+    }
+
+    // 5. إضافة منسق جديد للجدول المستقل
+    async function showAddCoordinatorPopup() {
+        const { value: v } = await Swal.fire({
+            title: 'إضافة منسق جديد للقائمة',
+            html: '<input id="n" class="swal2-input" placeholder="اسم المنسق"><input id="w" class="swal2-input" placeholder="الكلية">',
+            preConfirm: () => ({ name: document.getElementById('n').value, work: document.getElementById('w').value })
+        });
+        if (v && v.name && v.work) {
+            await _supabase.from('coordinators_list').insert([{ name: `${v.name} (${v.work})` }]);
+            loadEmployees();
+        }
+    }
+
+    // دوال التعديل والحذف والتنسيق
+    async function editRecord(id, oldIn, oldOut) {
+        const d = oldIn.split('T')[0];
+        const { value: val } = await Swal.fire({
+            title: 'تعديل السجل',
+            html: `الحضور: <input id="ei" type="time" class="swal2-input" value="${oldIn.split('T')[1].substring(0,5)}"><br>
+                   الانصراف: <input id="eo" type="time" class="swal2-input" value="${oldOut ? oldOut.split('T')[1].substring(0,5) : ''}">`,
+            preConfirm: () => ({ i: document.getElementById('ei').value, o: document.getElementById('eo').value })
+        });
+        if (val) {
+            await _supabase.from('coordinators_attendance').update({
+                check_in: `${d}T${val.i}:00`,
+                check_out: val.o ? `${d}T${val.o}:00` : null
+            }).eq('id', id);
+            fetchLogs();
+        }
+    }
+
+    async function deleteRec(id) {
+        if (confirm("حذف السجل نهائياً؟")) {
+            await _supabase.from('coordinators_attendance').delete().eq('id', id);
+            fetchLogs();
+        }
+    }
+
+    function formatTime(iso) { return iso ? new Date(iso).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}) : '-'; }
+    
+    loadEmployees();
+    fetchLogs();
+</script>
+</body>
+</html>
